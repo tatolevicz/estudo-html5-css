@@ -1,15 +1,60 @@
-body {
-  background-color: tomato;
+.linha1 {
+  margin: 5px;
+  height: 100px;
+  -webkit-box-pack: start;
+      -ms-flex-pack: start;
+          justify-content: flex-start;
 }
 
-@media screen and (min-width: 576px) {
-  body {
-    background-color: teal;
-  }
+.linha1 .coluna1 {
+  background-color: aqua;
 }
 
-@media screen and (min-width: 950px) {
-  body {
-    background-color: yellow;
-  }
+.linha1 .coluna1:hover {
+  background-color: yellow;
 }
+
+.linha1 .coluna2 {
+  background-color: blueviolet;
+}
+
+.linha1 .coluna3 {
+  background-color: coral;
+}
+
+.linha2 {
+  margin: 5px;
+  height: 100px;
+  -webkit-box-pack: end;
+      -ms-flex-pack: end;
+          justify-content: flex-end;
+}
+
+.linha2 .coluna1 {
+  background-color: aqua;
+}
+
+.linha2 .coluna1:hover {
+  background-color: yellow;
+}
+
+.linha2 .coluna2 {
+  background-color: blueviolet;
+}
+
+.linha2 .coluna3 {
+  background-color: coral;
+}
+
+.canvasContainer {
+  text-align: center;
+}
+
+.canvasContainer canvas {
+  border-style: solid;
+  border-color: black;
+  border-width: 3px;
+  -webkit-box-shadow: 10px 10px 10px black;
+          box-shadow: 10px 10px 10px black;
+}
+/*# sourceMappingURL=styles.css.map */

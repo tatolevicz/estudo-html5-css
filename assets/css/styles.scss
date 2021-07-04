@@ -1,0 +1,41 @@
+$corRoxa: blueviolet;
+$corAzul: aqua;
+$corAmarelo: yellow;
+$corCoral: coral;
+
+@mixin linhaDefault($pos) {
+  margin: 5px;
+  height: 100px;
+  justify-content: $pos;
+  .coluna1 {
+    background-color: $corAzul;
+    &:hover {
+      background-color: $corAmarelo;
+    }
+  }
+  .coluna2 {
+    background-color: $corRoxa;
+  }
+
+  .coluna3 {
+    background-color: $corCoral;
+  }
+}
+
+.linha1 {
+  @include linhaDefault(flex-start);
+}
+
+.linha2 {
+  @include linhaDefault(flex-end);
+}
+
+.canvasContainer {
+  text-align: center;
+  canvas {
+    border-style: solid;
+    border-color: black;
+    border-width: 3px;
+    box-shadow: 10px 10px 10px black;
+  }
+}
