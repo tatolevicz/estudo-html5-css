@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap");
 body {
   background: #3bceac;
   -webkit-box-sizing: border-box;
@@ -285,4 +286,80 @@ header .container-fluid {
 .waveTopFooter {
   fill: #540d6e;
 }
-/*# sourceMappingURL=styles.css.map */
+
+body {
+  background-color: #ffd23f;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+header {
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+header .title {
+  font-family: "Tourney", cursive;
+  margin-top: 1em;
+  text-align: center;
+  font-size: 60px;
+  text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.4);
+}
+
+canvas {
+  z-index: 1;
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  border: 5px solid #000;
+  border-radius: 10px;
+  -webkit-box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.4);
+          box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.4);
+}
+
+#container-ui {
+  width: 100%;
+  height: 500px;
+}
+
+#container-ui .ui-gameover {
+  font-family: "Open Sans", sans-serif;
+  border-radius: 10px;
+}
+
+#container-ui .ui-gameover h1 {
+  margin: 1rem;
+  font-weight: 600;
+}
+
+#container-ui .ui-gameover p {
+  color: darkgrey;
+  font-weight: 400;
+}
+
+#container-ui .ui-gameover button {
+  margin: 1rem;
+  font-weight: 400;
+  color: white;
+  border-radius: 50vh;
+  width: 80%;
+}
+
+.ui-gameover {
+  z-index: 2;
+}
+
+.waveTopFooter {
+  fill: #ffd23f;
+}
+
+footer {
+  -webkit-box-sizing: normal;
+          box-sizing: normal;
+  padding-bottom: 50px;
+}
+/*# sourceMappingURL=bikehills.css.map */

@@ -1,41 +1,271 @@
-$corRoxa: blueviolet;
-$corAzul: aqua;
-$corAmarelo: yellow;
-$corCoral: coral;
+$textColorWhite: #fff;
+$textColorYellow: #fff;
+$bckgColorHeader: #3bceac;
+$linkHeaderHover: #47ffd4;
+$bckgProjects: #ee4266;
+$colorYellow: #ffd23f;
+$colorPurple: #540d6e;
+$colorDark: #2f2f2f;
+$colorClear: #00000000;
 
-@mixin linhaDefault($pos) {
-  margin: 5px;
-  height: 100px;
-  justify-content: $pos;
-  .coluna1 {
-    background-color: $corAzul;
+@mixin whiteLink() {
+  color: $textColorWhite;
+  text-decoration: none;
+}
+
+@mixin yellowLink() {
+  color: $colorYellow;
+  text-decoration: none;
+}
+
+body {
+  background: $bckgColorHeader;
+  box-sizing: border-box;
+}
+
+div {
+  position: relative;
+}
+// HEADER PAGE LINKS
+header .container-fluid {
+  background: $bckgColorHeader;
+}
+
+.page-link {
+  margin-top: 3em;
+  font-family: "Montsserat", sans-serif;
+  font-weight: 800;
+  text-align: center;
+  background: $colorClear;
+  color: $textColorWhite;
+  text-decoration: none;
+  display: flex;
+  border: 0;
+  flex-direction: horizontal;
+  a {
+    text-decoration: none;
+    color: $textColorWhite;
+    margin-top: 1em;
     &:hover {
-      background-color: $corAmarelo;
+      color: $linkHeaderHover;
     }
   }
-  .coluna2 {
-    background-color: $corRoxa;
-  }
 
-  .coluna3 {
-    background-color: $corCoral;
+  &:hover {
+    background-color: $bckgColorHeader;
   }
 }
+// HEADER CONTENT
+.header-content-left {
+  font-family: "Roboto", sans-serif;
+  letter-spacing: 2px;
+  background-repeat: no-repeat;
+  h1 {
+    font-family: "Oxygen", sans-serif;
+    font-weight: bold;
+    letter-spacing: 0px;
+  }
 
-.linha1 {
-  @include linhaDefault(flex-start);
+  a {
+    @include whiteLink();
+    &:hover {
+      color: $linkHeaderHover;
+    }
+  }
 }
 
-.linha2 {
-  @include linhaDefault(flex-end);
+.header-content-right {
+  letter-spacing: 2px;
+
+  .header-picture {
+    // object-fit: cover;
+    box-shadow: 15px 15px 20px rgba(0, 0, 0, 0.25);
+    border-radius: 343px;
+  }
+
+  a {
+    @include whiteLink();
+    white-space: nowrap;
+    &:hover {
+      color: $linkHeaderHover;
+    }
+  }
 }
 
-.canvasContainer {
+.effect-canvas {
+  // position: absolute;
+  width: 100px;
+  height: 85%;
+  margin-top: 1em;
+}
+
+.txtPresentation-picture {
+  font-size: 12px;
   text-align: center;
-  canvas {
-    border-style: solid;
-    border-color: black;
-    border-width: 3px;
-    box-shadow: 10px 10px 10px black;
+}
+
+.waveBottomHeader {
+  fill: $bckgProjects;
+}
+
+.projects {
+  background-color: $bckgProjects;
+  .container-fluid {
+    background-color: $bckgProjects;
   }
+}
+
+.waveTopProjects {
+  fill: $bckgColorHeader;
+}
+// Projects session
+.slider {
+  display: block;
+  overflow-x: scroll;
+}
+
+.slider-container {
+  display: block;
+  white-space: nowrap;
+}
+
+.item {
+  background-color: $colorYellow;
+  display: inline-block;
+  margin-right: 4em;
+}
+
+.projects-title {
+  margin-top: 1em;
+  font-family: "Montsserat", sans-serif;
+  font-weight: 400;
+  text-align: left;
+  color: $textColorWhite;
+  text-decoration: none;
+}
+
+.project-card {
+  letter-spacing: 1px;
+  background-color: $colorYellow;
+  height: 350px;
+  box-shadow: 15px 15px 20px rgba(0, 0, 0, 0.25);
+  margin-top: 2em;
+}
+
+.project-card-title {
+  height: 20%;
+  padding: 1em;
+  color: $colorDark;
+  font-size: 14px;
+  font-family: "Roboto", sans-serif;
+  white-space: normal;
+}
+
+.project-card-body {
+  height: 60%;
+  img {
+    height: 100%;
+  }
+}
+
+.project-card-footer {
+  height: 20%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  .btn {
+    font-family: "Montsserat", sans-serif;
+    font-weight: bold;
+    background-color: $colorPurple;
+    color: $textColorWhite;
+    border-radius: 0;
+    margin: 1em;
+  }
+}
+.waveBottomProjects {
+  fill: $bckgProjects;
+}
+
+.about {
+  background-color: $colorPurple;
+  .txtPresentation-picture {
+    color: $textColorWhite;
+    a {
+      @include yellowLink();
+      &:hover {
+        color: $linkHeaderHover;
+      }
+    }
+  }
+}
+// ABOUT CONTENT
+.about-content-left {
+  font-family: "Roboto", sans-serif;
+  letter-spacing: 2px;
+  background-repeat: no-repeat;
+  color: $textColorWhite;
+  h1 {
+    font-family: "Oxygen", sans-serif;
+    font-weight: bold;
+    letter-spacing: 0px;
+  }
+
+  a {
+    @include yellowLink();
+    &:hover {
+      color: $linkHeaderHover;
+    }
+  }
+}
+
+.about-content-right {
+  font-family: "Roboto", sans-serif;
+  letter-spacing: 2px;
+  color: $textColorWhite;
+  a {
+    @include yellowLink();
+    white-space: nowrap;
+    &:hover {
+      color: $linkHeaderHover;
+    }
+  }
+
+  .about-picture {
+    box-shadow: 15px 15px 20px rgba(0, 0, 0, 0.25);
+  }
+}
+
+// FOOTER
+.footer {
+  background-color: $colorDark;
+  color: $textColorWhite;
+  h3 {
+    font-family: "Oxygen", sans-serif;
+    font-weight: bold;
+    font-size: 26px;
+
+    letter-spacing: 0px;
+  }
+
+  p {
+    padding: 2rem;
+    padding-left: 0;
+    font-family: "Roboto", sans-serif;
+    font-size: 14px;
+    letter-spacing: 2px;
+    color: $textColorWhite;
+  }
+  a {
+    font-size: 14px;
+    @include yellowLink();
+    color: $bckgProjects;
+    &:hover {
+      color: $linkHeaderHover;
+    }
+  }
+}
+
+.waveTopFooter {
+  fill: $colorPurple;
 }

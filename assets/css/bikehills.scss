@@ -1,0 +1,73 @@
+@import "styles";
+
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap");
+
+body {
+  background-color: $colorYellow;
+  box-sizing: border-box;
+}
+
+header {
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: auto;
+  margin-right: auto;
+
+  .title {
+    font-family: "Tourney", cursive;
+    margin-top: 1em;
+    text-align: center;
+    font-size: 60px;
+    text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.4);
+  }
+}
+
+canvas {
+  z-index: 1;
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  border: 5px solid #000;
+  border-radius: 10px;
+  box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.4);
+}
+
+#container-ui {
+  width: 100%;
+  height: 500px;
+  .ui-gameover {
+    font-family: "Open Sans", sans-serif;
+    border-radius: 10px;
+    h1 {
+      margin: 1rem;
+      font-weight: 600;
+    }
+
+    p {
+      color: darkgrey;
+      font-weight: 400;
+    }
+    button {
+      margin: 1rem;
+      font-weight: 400;
+      color: white;
+      border-radius: 50vh;
+      width: 80%;
+    }
+  }
+}
+
+.ui-gameover {
+  z-index: 2;
+}
+
+.waveTopFooter {
+  fill: $colorYellow;
+}
+
+footer {
+  box-sizing: normal;
+  padding-bottom: 50px;
+}
