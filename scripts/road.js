@@ -12,12 +12,6 @@ export class Road
             throw new Error("limitValue should be greater than 0");
         }
 
-        if(limitValue < numberOfHills )
-        {
-            throw new Error("limitValue should be greater than numberOfHills");
-        }
-
-
         this.numberOfHills = numberOfHills;
         this.limitValue = limitValue;
         this.hills = [];
@@ -27,7 +21,7 @@ export class Road
     populate(){
         while (this.hills.length < this.numberOfHills) {
             var val = 0;
-            while(this.hills.includes(val = Math.floor(Math.random()*this.limitValue)));
+            while(this.hills.includes(val = Math.random()*this.limitValue));
             this.hills.push(val);
             console.log(val);
         } 

@@ -30,5 +30,5 @@ c.width = window.innerWidth * 0.8 < 1000 ? window.innerWidth * 0.8 : 1000;
 c.height = 500;
 
 // step 3
-var road = new Road(10, 100);
+var road = new Road(255, 100);
 road.populate();
