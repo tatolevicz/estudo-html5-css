@@ -1,13 +1,14 @@
 import { Noise } from "./utils/noise.js";
 
 class Road{
-    constructor(context, startX, endX ,startY, endY, proceduralSize, height ,interpolationAmount){
+    constructor(context, startX, endX ,startY, endY, proceduralSize, height ,interpolationAmount, color){
 
         this.startY = startY;
         this.endY = endY;
         this.startX = startX;
         this.endX = endX;
         this.context = context;
+        this.color = color;
 
         this.interpolationAmount = interpolationAmount;
 
@@ -38,10 +39,10 @@ class Road{
         }
 
         ctx.lineTo(this.endX,this.endY);
-        ctx.strokeStyle = "#000";
+        ctx.strokeStyle = this.color;
         ctx.stroke();
 
-        ctx.fillStyle = "#000";
+        ctx.fillStyle = this.color;
         ctx.fill();
     }
 }

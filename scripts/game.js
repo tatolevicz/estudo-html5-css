@@ -17,14 +17,11 @@
 */
 
 import { Road } from "./road.js";
+import { GameColors } from "./colors.js";
+
 
 class Game{
     constructor() {
-        //colors
-        this.backgroundColor = "#1199FF";
-        this.skyColor = "#5AB8FF";
-        this.hillsColor = "#000";
-
         // step 1
         this.canvas = document.querySelector("canvas");
         this.context = this.canvas.getContext("2d");
@@ -34,7 +31,7 @@ class Game{
         this.canvas.height = 500;
 
         // step 3
-        this.road = new Road(this.context, 0, this.canvas.width, this.canvas.height, this.canvas.height, 10, 150, 1.0);
+        this.road = new Road(this.context, 0, this.canvas.width, this.canvas.height, this.canvas.height, 10, 150, 1.0, GameColors._hillsColor);
     
     }
 
