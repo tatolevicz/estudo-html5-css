@@ -1,7 +1,7 @@
 import { Noise } from "./utils/noise.js";
 
 class Road{
-    constructor(context, startX, endX ,startY, endY, proceduralSize, proceduralStep, height ,interpolationAmount, color){
+    constructor(context, startX, endX ,startY, endY, proceduralSize, proceduralStep, height ,hillsInterpolationAmount, color){
 
         this.startY = startY;
         this.endY = endY;
@@ -11,7 +11,7 @@ class Road{
         this.color = color;
         this.step = proceduralStep;
 
-        this.interpolationAmount = interpolationAmount;
+        this.hillsInterpolationAmount = hillsInterpolationAmount;
 
         this.noise = new Noise(proceduralSize,height);
         this.noise.populate();
@@ -29,10 +29,13 @@ class Road{
         let yValues = this.noise.getValues();
 
         for(var i = 0; i < canvas.width; i++){    
-            ctx.lineTo(i*this.step,canvas.height - Math.round(yValues[i % yValues.length]));
-
-            if(i*this.step > canvas.width)
+            
+            if(i*this.step > this.endX){
+                ctx.lineTo(this.endX,canvas.height - Math.round(yValues[i % yValues.length]));
                 break;
+            }
+
+            ctx.lineTo(i*this.step,canvas.height - Math.round(yValues[i % yValues.length]));
         }
 
         ctx.lineTo(this.endX,this.endY);
