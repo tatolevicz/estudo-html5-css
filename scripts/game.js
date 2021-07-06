@@ -31,7 +31,7 @@ class Game{
         this.canvas.height = 500;
 
         // step 3
-        this.road = new Road(this.context, 0, this.canvas.width, this.canvas.height, this.canvas.height, 10, 150, 1.0, GameColors._hillsColor);
+        this.road = new Road(this.context, 0, this.canvas.width, this.canvas.height, this.canvas.height, 200,80, 150, 1.0, GameColors._hillsColor);
     
     }
 
