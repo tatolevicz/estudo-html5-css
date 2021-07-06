@@ -1,30 +1,19 @@
-export class Road
-{
-    constructor(numberOfHills, limitValue){
-        
-        if(numberOfHills <= 0)
-        {
-            throw new Error("numberOfHills should greater than 0");
-        }
+// class Road{
+//     constructor(context, startX, endX ,startY, endY, yValues,interpolationAmount){
 
-        if(limitValue <= 0  )
-        {
-            throw new Error("limitValue should be greater than 0");
-        }
+//         this.yValues = yValues;
+//         this.startY = startY;
+//         this.endY = endY;
+//         this.startX = startX;
+//         this.endX = endX;
+//         this.context = context;
+//         this.interpolationAmount = interpolationAmount;
 
-        this.numberOfHills = numberOfHills;
-        this.limitValue = limitValue;
-        this.hills = [];
-    }
+//     }
 
-    //populates the ramdom values  
-    populate(){
-        while (this.hills.length < this.numberOfHills) {
-            var val = 0;
-            while(this.hills.includes(val = Math.random()*this.limitValue));
-            this.hills.push(val);
-            console.log(val);
-        } 
-    }
-
-};
+//     draw(){
+//         this.context.beginPath();
+//         this.context.moveTo(this.startX,this.startY);
+//         this.
+//     }
+// }
