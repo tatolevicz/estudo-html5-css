@@ -37,9 +37,12 @@ class Road{
                 break;
         }
 
-
+        ctx.lineTo(this.endX,this.endY);
         ctx.strokeStyle = "#000";
         ctx.stroke();
+
+        ctx.fillStyle = "#000";
+        ctx.fill();
     }
 }
 
