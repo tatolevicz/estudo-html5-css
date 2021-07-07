@@ -17,6 +17,7 @@
 */
 
 import { Road } from "./road.js";
+import { Player } from "./player.js";
 import { GameColors } from "./colors.js";
 
 
@@ -37,8 +38,8 @@ class Game{
             this.canvas.width*1.1, 
             this.canvas.height, 
             this.canvas.height, 
-            250,
-            80, 
+            500,
+            120, 
             130, 
             GameColors.hillsColor,
             true,
@@ -59,10 +60,20 @@ class Game{
             true,
             true,
             0.3);
+
+            let img = new Image();
+            img.src = './assets/images/player.png';
+
+            this.player = new Player(img,0.7);
+        
+
+            this.road.setSpeed(3);
+
     }
 
     loop(){
         // console.log("Running loop!");
+        this.update();
         this.draw();
     }
 
@@ -73,7 +84,18 @@ class Game{
 
         this.sky.draw();
         this.road.draw();
-        // console.log(this.road.getRoadAngle(0,80)*(180/Math.PI));
+        this.player.draw();
+    }
+
+    update(){
+        let playerX = this.canvas.width/4;
+        let playerY = this.road.getRoadY(this.road.getRoadPosition(playerX));
+
+        let playerRotation = this.road.getRoadAngle(this.road.getRoadPosition(playerX) - this.player.width/3,this.road.getRoadPosition(playerX) + this.player.width/3);
+
+        this.player.setPosition(playerX,playerY);
+        this.player.setRotation(playerRotation);
+
     }
 }
 

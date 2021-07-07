@@ -39,7 +39,7 @@ class Road{
         let i = 0;
         while(i < this.endX){
 
-            let x = i + this.pixelsToMove;
+            let x = this.getRoadPosition(i);
             let y = this.getRoadY(x);
 
             ctx.lineTo(i,y);
@@ -86,6 +86,10 @@ class Road{
         let height = this.originAbove ? this.lerp(y1,y2,f) : this.canvas.height - this.lerp(y1,y2,f);
 
         return height;
+    }
+
+    getRoadPosition(xPixel){
+       return xPixel + this.pixelsToMove;
     }
 
     // returns the angle of to road points in rad
