@@ -76,17 +76,24 @@ class Game{
     }
 
     loop(){
-        // console.log("Running loop!");
+
+        //update game logic and objects
         this.update();
+
+        //update canvas
         this.draw();
     }
 
     draw(){
+        //draw the background first
         this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
         this.context.fillStyle = GameColors.backgroundColor;
         this.context.fillRect(0,0,this.canvas.width, this.canvas.height);
 
+        //draw the sky to be the most far element in front the background
         this.sky.draw();
+
+        //draw the road and player with any sequence cause they will not overlap each other
         this.road.draw();
         this.player.draw();
     }
@@ -99,7 +106,6 @@ class Game{
 
         this.player.setPosition(playerX,playerY);
         this.player.setRotation(playerRotation);
-
     }
 }
 
