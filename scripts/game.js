@@ -37,12 +37,11 @@ class Game{
             this.canvas.width*1.1, 
             this.canvas.height, 
             this.canvas.height, 
-            300,
-            80, 
+            10,
+            50, 
             130, 
             GameColors.
-            _hillsColor);
-    
+            _hillsColor);    
     }
 
     loop(){
@@ -53,7 +52,7 @@ class Game{
     draw(){
         this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
         this.road.draw();
-        console.log(this.road.getRoadAngle(0,80)*(180/Math.PI));
+        // console.log(this.road.getRoadAngle(0,80)*(180/Math.PI));
     }
 }
 
@@ -61,7 +60,7 @@ var game = new Game();
 
 function mainLoop(){
     game.loop();
-    // requestAnimationFrame(mainLoop);
+    requestAnimationFrame(mainLoop);
 }
 
 mainLoop();

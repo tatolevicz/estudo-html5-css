@@ -20,7 +20,8 @@ class Road{
 
         this.indexNoise = 0;
 
-        this.sizeRoadInPixels = this.proceduralSize*this.step;
+        this.speed = 0;
+        this.pixelsToMove = 0;
     }
 
     draw(){
@@ -33,7 +34,11 @@ class Road{
 
         let i = 0;
         while(i < this.endX){
-            ctx.lineTo(i,this.getRoadY(i));
+
+            let x = i + this.pixelsToMove;
+            let y = this.getRoadY(x);
+
+            ctx.lineTo(i,y);
             i++;
         }
 
@@ -43,6 +48,8 @@ class Road{
 
         ctx.fillStyle = this.color;
         ctx.fill();
+
+        this.pixelsToMove += this.speed;
     }
 
     // f should be a number between 0 - 1
@@ -57,10 +64,9 @@ class Road{
 
     getRoadY(x)
     {
-        if (x < 0 || x > this.sizeRoadInPixels)
-        {
-            console.log("road position invalid");
-            return;
+        //revert the draw of road 
+        if (x < 0){
+            x =  Math.abs(x); 
         }
         
         //loop throughout the noise values
@@ -72,17 +78,22 @@ class Road{
         let y2 = this.yValues[indexY2];
     
         let normX = (x % this.step) / this.step;
-        let height = this.canvas.height - this.lerp(y1,y2,normX);//this.cosInterp(normX));
+        let height = this.canvas.height - this.lerp(y1,y2,this.cosInterp(normX));
 
         return height;
     }
 
-    // returns the angle of to roade points in rad
+    // returns the angle of to road points in rad
     getRoadAngle(x1,x2){
         let deltaX = x2 - x1;
         let deltaY = this.getRoadY(x1)- this.getRoadY(x2);
         let angle = Math.atan2(deltaY,deltaX);
         return angle;
+    }
+
+    setSpeed(speed)
+    {
+        this.speed = speed;
     }
 }
 
