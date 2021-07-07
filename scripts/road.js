@@ -1,7 +1,7 @@
 import { Noise } from "./utils/noise.js";
 
 class Road{
-    constructor(canvas, startX, endX ,startY, endY, proceduralSize, proceduralStep, height, color, shouldCosInterPolate, originAbove = true){
+    constructor(canvas, startX, endX ,startY, endY, proceduralSize, proceduralStep, height, color, rounded, originAbove = true, paralexAceleration = 1){
 
         this.startY = startY;
         this.endY = endY;
@@ -14,7 +14,7 @@ class Road{
         this.color = color;
         this.step = proceduralStep;
 
-        this.shouldCosInterPolate = shouldCosInterPolate;
+        this.shouldCosInterPolate = rounded;
 
         this.noise = new Noise(proceduralSize,height);
         this.noise.populate();
@@ -22,6 +22,8 @@ class Road{
 
         this.speed = 0;
         this.pixelsToMove = 0;
+
+        this.distanceParalaxe = paralexAceleration;
 
         this.originAbove = originAbove;
     }
@@ -51,7 +53,7 @@ class Road{
         ctx.fillStyle = this.color;
         ctx.fill();
 
-        this.pixelsToMove += this.speed;
+        this.pixelsToMove += this.speed*this.distanceParalaxe ;
     }
 
     // f should be a number between 0 - 1

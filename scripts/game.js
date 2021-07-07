@@ -42,7 +42,8 @@ class Game{
             130, 
             GameColors.hillsColor,
             true,
-            false);  
+            false,
+            1.0);  
             
              // step 3 and 4
         this.sky = new Road(
@@ -55,10 +56,9 @@ class Game{
             30, 
             300, 
             GameColors.skyColor,
-            true);
-
-            this.road.setSpeed(1);
-            this.sky.setSpeed(0.3);
+            true,
+            true,
+            0.3);
     }
 
     loop(){
