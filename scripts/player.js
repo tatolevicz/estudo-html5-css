@@ -7,12 +7,18 @@ class Player{
         this.img = img;
         this.scale = scale;
         this.rotation = 0;
+
+        this.speedY = 0;
+        this.gravity = 0.2;
+
+        this.speed = 1;
         
         this.width = this.img.width*this.scale;
         this.height = this.img.height*this.scale;
 
         this.x = 0;
         this.y = 0;
+
 
         this.img = new Image();
         this.img.src = './assets/images/player.png';
@@ -38,14 +44,27 @@ class Player{
     }
 
     setPosition(x,y){
+        if(this.y < y)
+        {
+            this.speedY += this.gravity;
+        }
+        else{
+            this.speedY -= (this.y - y) * this.speed*this.gravity;
+            this.y = y;
+        }
+        
         this.x = x;
-        this.y = y;
+        // console.log(this.speedY);
+        this.y += this.speedY;
     }
 
     setRotation(rad){
         this.rotation = -rad;
     }
 
+    setSpeed(speed){
+        this.speed = speed;
+    }
 }
 
 export {Player};

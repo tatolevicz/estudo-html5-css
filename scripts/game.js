@@ -44,7 +44,7 @@ class Game{
             GameColors.hillsColor,
             true,
             false,
-            1.0);  
+            3.0);  
             
              // step 3 and 4
         this.sky = new Road(
@@ -59,7 +59,7 @@ class Game{
             GameColors.skyColor,
             true,
             true,
-            0.3);
+            0.8);
 
             let img = new Image();
             img.src = './assets/images/player.png';
@@ -67,7 +67,11 @@ class Game{
             this.player = new Player(img,0.7);
         
 
-            this.road.setSpeed(3);
+            let gameSpeed = 4;
+
+            this.sky.setSpeed(gameSpeed);
+            this.road.setSpeed(gameSpeed);
+            this.player.setSpeed(gameSpeed);
 
     }
 
