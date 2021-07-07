@@ -30,18 +30,35 @@ class Game{
         this.canvas.width = window.innerWidth * 0.8 < 1000 ? window.innerWidth * 0.8 : 1000;
         this.canvas.height = 500;
 
-        // step 3
+        // step 3 and 4
         this.road = new Road(
             this.canvas, 
             0, 
             this.canvas.width*1.1, 
             this.canvas.height, 
             this.canvas.height, 
-            10,
-            50, 
+            250,
+            80, 
             130, 
-            GameColors.
-            _hillsColor);    
+            GameColors.hillsColor,
+            true,
+            false);  
+            
+             // step 3 and 4
+        this.sky = new Road(
+            this.canvas, 
+            0, 
+            this.canvas.width*1.1, 
+            0, 
+            0, 
+            200,
+            30, 
+            300, 
+            GameColors.skyColor,
+            true);
+
+            this.road.setSpeed(1);
+            this.sky.setSpeed(0.3);
     }
 
     loop(){
@@ -51,6 +68,10 @@ class Game{
 
     draw(){
         this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
+        this.context.fillStyle = GameColors.backgroundColor;
+        this.context.fillRect(0,0,this.canvas.width, this.canvas.height);
+
+        this.sky.draw();
         this.road.draw();
         // console.log(this.road.getRoadAngle(0,80)*(180/Math.PI));
     }

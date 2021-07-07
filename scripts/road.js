@@ -1,7 +1,7 @@
 import { Noise } from "./utils/noise.js";
 
 class Road{
-    constructor(canvas, startX, endX ,startY, endY, proceduralSize, proceduralStep, height , color){
+    constructor(canvas, startX, endX ,startY, endY, proceduralSize, proceduralStep, height, color, shouldCosInterPolate, originAbove = true){
 
         this.startY = startY;
         this.endY = endY;
@@ -13,15 +13,17 @@ class Road{
 
         this.color = color;
         this.step = proceduralStep;
-        
+
+        this.shouldCosInterPolate = shouldCosInterPolate;
+
         this.noise = new Noise(proceduralSize,height);
         this.noise.populate();
         this.yValues = this.noise.getValues();
 
-        this.indexNoise = 0;
-
         this.speed = 0;
         this.pixelsToMove = 0;
+
+        this.originAbove = originAbove;
     }
 
     draw(){
@@ -78,7 +80,8 @@ class Road{
         let y2 = this.yValues[indexY2];
     
         let normX = (x % this.step) / this.step;
-        let height = this.canvas.height - this.lerp(y1,y2,this.cosInterp(normX));
+        let f = this.shouldCosInterPolate ? this.cosInterp(normX) : normX;
+        let height = this.originAbove ? this.lerp(y1,y2,f) : this.canvas.height - this.lerp(y1,y2,f);
 
         return height;
     }
