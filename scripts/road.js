@@ -33,47 +33,6 @@ class Road{
 
         let i = 0;
         while(i < this.endX){
-            //get x of line segment
-            // let x1 = i;
-            // let x2 = i + this.step;
-
-            // let shouldBreak = false;
-
-            //check x limits
-            // if(x2 > this.endX){
-                // x2 = this.endX;
-                // shouldBreak = true;
-            // }
-
-            // let y1 = canvas.height - Math.round(yValues[(this.indexNoise) % this.yValues.length]);
-            // let y2 = canvas.height - Math.round(yValues[(this.indexNoise + 1) % this.yValues.length]);
-            
-            // this.indexNoise += 1;
-
-            // let y = y1;
-
-            // let x = x1;
-
-            // let dist = x2 - x1; 
-
-            //interpolate to build the hill in this segment
-            // while(x <= x2)
-            // {
-            //     let deltaX = x2 - x;
-            //     let factor = (1 - deltaX/dist);
-
-            //     y = this.lerp(y1, y2,this.cosInterp(factor));
-
-            //     ctx.lineTo(x,y);
-            //     x += 1;
-            // }
-
-            // i = x2;
-
-            // if(shouldBreak){
-                // break;
-            // }
-
             ctx.lineTo(i,this.getRoadY(i));
             i++;
         }
@@ -92,7 +51,6 @@ class Road{
         return a + (b - a) * f;
     }
 
-    // v should be a number between 0 - 1
     cosInterp(v){
         return (1 - Math.cos (v * Math.PI))/2;
     }
@@ -113,15 +71,18 @@ class Road{
         let y1 = this.yValues[indexY1];
         let y2 = this.yValues[indexY2];
     
-        let v = (x % this.step) / this.step;
-        
-        console.log('Val: ' + this.lerp(y1,y2,this.cosInterp(v)));
-
-        let height = this.canvas.height - this.lerp(y1,y2,this.cosInterp(v));
-
-        console.log('Height: ' + height);
+        let normX = (x % this.step) / this.step;
+        let height = this.canvas.height - this.lerp(y1,y2,normX);//this.cosInterp(normX));
 
         return height;
+    }
+
+    // returns the angle of to roade points in rad
+    getRoadAngle(x1,x2){
+        let deltaX = x2 - x1;
+        let deltaY = this.getRoadY(x1)- this.getRoadY(x2);
+        let angle = Math.atan2(deltaY,deltaX);
+        return angle;
     }
 }
 
