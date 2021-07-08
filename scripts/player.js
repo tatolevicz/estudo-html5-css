@@ -23,6 +23,7 @@ class Player{
         this.grounded = false;
         this.lastGroundedState = false;
 
+        this.onGrounded = undefined;
 
         this.img = new Image();
         this.img.src = './assets/images/player.png';
@@ -51,19 +52,23 @@ class Player{
     }
 
     setPosition(x,y){
+
         if(this.y < (y - 10))
         {
             this.grounded = false;
-            
+
             this.rotation += 0.01;
         }
         else{
             this.grounded = true;
         }
 
+         //just change the state
         if(this.lastGroundedState != this.grounded)
         {
-            console.log("Grounded: " + this.grounded);
+            // console.log("Grounded: " + this.grounded);
+            if(this.grounded && this.onGrounded)
+                this.onGrounded();
         }
     
         this.lastGroundedState  = this.grounded;

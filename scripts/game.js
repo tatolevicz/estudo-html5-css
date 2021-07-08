@@ -35,7 +35,7 @@ class Game{
         this.canvas.width = window.innerWidth * 0.8 < 1000 ? window.innerWidth * 0.8 : 1000;
         this.canvas.height = 500;
         this.gameSpeed = 0;
-        this.gameAcceleration = 0.02;
+        this.gameAcceleration = 0.01;
 
         this.inputHandler = new InputHandler();
 
@@ -49,8 +49,8 @@ class Game{
             this.canvas.height, 
             this.canvas.height, 
             50,
-            120, 
-            130, 
+            180, 
+            160, 
             GameColors.hillsColor,
             true,
             false,
@@ -76,8 +76,15 @@ class Game{
 
             this.player = new Player(img,0.7);
 
+            this.player.onGrounded = this.onPlayerGrounded;
+
             window.onkeydown = ev => this.inputHandler.controls[ev.key] = 1;
             window.onkeyup = ev => this.inputHandler.controls[ev.key] = 0;
+    }
+
+    onPlayerGrounded()
+    {
+        console.log("Player grounded");
     }
 
     loop(){
@@ -161,7 +168,23 @@ class Game{
     }
 
     inputs(){
-        this.gameSpeed += (this.inputHandler.controls.ArrowUp - this.inputHandler.controls.ArrowDown)*this.gameAcceleration;
+
+        let inputSpeed = (this.inputHandler.controls.ArrowUp - this.inputHandler.controls.ArrowDown);
+
+        let gravityAcelleration = (this.player.rotation/Math.PI/4) * 0.5;
+
+        if(inputSpeed && this.player.grounded)
+        {
+            this.gameSpeed += (this.inputHandler.controls.ArrowUp - this.inputHandler.controls.ArrowDown)*(this.gameAcceleration + gravityAcelleration);
+            if(this.gameSpeed < 0)
+                this.gameSpeed = 0;
+        }
+        else if(this.player.grounded)
+        {
+            this.gameSpeed -=  this.gameSpeed*this.gameAcceleration - gravityAcelleration;
+        }
+
+
 
         let rotDirection = (this.inputHandler.controls.ArrowLeft - this.inputHandler.controls.ArrowRight);
         
