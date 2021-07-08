@@ -7,6 +7,7 @@ class Player{
         this.img = img;
         this.scale = scale;
         this.rotation = 0;
+        this.rotSpeed = 0.3;
 
         this.speedY = 0;
         this.gravity = 0.2;
@@ -18,6 +19,9 @@ class Player{
 
         this.x = 0;
         this.y = 0;
+
+        this.grounded = false;
+        this.lastGroundedState = false;
 
 
         this.img = new Image();
@@ -44,6 +48,23 @@ class Player{
     }
 
     setPosition(x,y){
+
+
+        if(this.y < (y - 10))
+        {
+            this.grounded = false;
+        }
+        else{
+            this.grounded = true;
+        }
+
+        if(this.lastGroundedState != this.grounded)
+        {
+            console.log("Grounded: " + this.grounded);
+        }
+    
+        this.lastGroundedState  = this.grounded;
+
         if(this.y < y)
         {
             this.speedY += this.gravity;
@@ -59,11 +80,15 @@ class Player{
     }
 
     setRotation(rad){
-        this.rotation = -rad;
+        this.rotation -= (this.rotation + rad)*this.rotSpeed;
     }
 
     setSpeed(speed){
-        this.speed = speed;
+        this.speed = Math.abs(speed);
+    }
+
+    isGrounded(){
+        return this.grounded;
     }
 }
 

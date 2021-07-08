@@ -38,7 +38,7 @@ class Game{
             this.canvas.width*1.1, 
             this.canvas.height, 
             this.canvas.height, 
-            500,
+            50,
             120, 
             130, 
             GameColors.hillsColor,
@@ -67,7 +67,7 @@ class Game{
             this.player = new Player(img,0.7);
         
 
-            let gameSpeed = 4;
+            let gameSpeed = 0.5;
 
             this.sky.setSpeed(gameSpeed);
             this.road.setSpeed(gameSpeed);
@@ -76,6 +76,9 @@ class Game{
     }
 
     loop(){
+
+        //get the inputs from user
+        this.inputs();
 
         //update game logic and objects
         this.update();
@@ -105,7 +108,13 @@ class Game{
         let playerRotation = this.road.getRoadAngle(this.road.getRoadPosition(playerX) - this.player.width/3,this.road.getRoadPosition(playerX) + this.player.width/3);
 
         this.player.setPosition(playerX,playerY);
-        this.player.setRotation(playerRotation);
+
+        if(this.player.grounded)
+            this.player.setRotation(playerRotation);
+    }
+
+    inputs(){
+
     }
 }
 
