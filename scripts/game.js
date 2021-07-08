@@ -181,10 +181,8 @@ class Game{
         }
         else if(this.player.grounded)
         {
-            this.gameSpeed -=  this.gameSpeed*this.gameAcceleration - gravityAcelleration;
+            this.gameSpeed -=  this.gameSpeed*this.gameAcceleration - gravityAcelleration*0.5;
         }
-
-
 
         let rotDirection = (this.inputHandler.controls.ArrowLeft - this.inputHandler.controls.ArrowRight);
         
