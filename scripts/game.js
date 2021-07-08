@@ -19,10 +19,14 @@
 import { Road } from "./road.js";
 import { Player } from "./player.js";
 import { GameColors } from "./colors.js";
+import { States } from "./states.js";
+import { InputHandler } from "./input.js";
 
 
 class Game{
     constructor() {
+
+        this.states = new States();
         // step 1
         this.canvas = document.querySelector("canvas");
         this.context = this.canvas.getContext("2d");
@@ -30,6 +34,12 @@ class Game{
         //step 2
         this.canvas.width = window.innerWidth * 0.8 < 1000 ? window.innerWidth * 0.8 : 1000;
         this.canvas.height = 500;
+        this.gameSpeed = 0;
+        this.gameAcceleration = 0.02;
+
+        this.inputHandler = new InputHandler();
+
+        this.playerOffsetX = this.canvas.width/4;
 
         // step 3 and 4
         this.road = new Road(
@@ -65,14 +75,9 @@ class Game{
             img.src = './assets/images/player.png';
 
             this.player = new Player(img,0.7);
-        
 
-            let gameSpeed = 0.5;
-
-            this.sky.setSpeed(gameSpeed);
-            this.road.setSpeed(gameSpeed);
-            this.player.setSpeed(gameSpeed);
-
+            window.onkeydown = ev => this.inputHandler.controls[ev.key] = 1;
+            window.onkeyup = ev => this.inputHandler.controls[ev.key] = 0;
     }
 
     loop(){
@@ -83,7 +88,7 @@ class Game{
         //update game logic and objects
         this.update();
 
-        //update canvas
+        //update canva's game
         this.draw();
     }
 
@@ -102,18 +107,66 @@ class Game{
     }
 
     update(){
-        let playerX = this.canvas.width/4;
+
+        //do the game logic
+        switch (this.states.getState()) {
+            case States.STARTING:
+                this.states.setState(States.PLAYING);
+                break;
+            case States.PLAYING: 
+                this.sky.setSpeed(this.gameSpeed);
+                this.road.setSpeed(this.gameSpeed);
+                this.player.setSpeed(this.gameSpeed);
+                break;
+            case States.FINISHING: 
+                break;
+            case States.FINISHED: 
+                break;
+            case States.NONE: 
+                if(this.player.grounded)
+                {
+                    this.states.setState(States.STARTING)
+                }
+            default:
+                break;
+        }
+
+        //update the position and rotation of player
+        this.updatePlayerPosition();
+        this.updatePlayerRotation();
+    }
+
+    checkGameOver()
+    {
+
+    }
+    
+
+    updatePlayerPosition()
+    {
+        let playerX = this.playerOffsetX;
         let playerY = this.road.getRoadY(this.road.getRoadPosition(playerX));
-
-        let playerRotation = this.road.getRoadAngle(this.road.getRoadPosition(playerX) - this.player.width/3,this.road.getRoadPosition(playerX) + this.player.width/3);
-
         this.player.setPosition(playerX,playerY);
+    }
 
-        if(this.player.grounded)
-            this.player.setRotation(playerRotation);
+
+    updatePlayerRotation()
+    {
+        let roadAngle= this.road.getRoadAngle(this.road.getRoadPosition(this.playerOffsetX) - this.player.width/3,this.road.getRoadPosition(this.playerOffsetX) + this.player.width/3);
+
+        if(this.player.grounded){
+            this.player.rotSpeed = 0.3;
+            this.player.rotate(this.player.rotation + roadAngle);
+        }
     }
 
     inputs(){
+        this.gameSpeed += (this.inputHandler.controls.ArrowUp - this.inputHandler.controls.ArrowDown)*this.gameAcceleration;
+
+        let rotDirection = (this.inputHandler.controls.ArrowLeft - this.inputHandler.controls.ArrowRight);
+        
+        this.player.rotSpeed = 0.1;
+        this.player.rotate(rotDirection);
 
     }
 }
@@ -126,4 +179,11 @@ function mainLoop(){
 }
 
 mainLoop();
+
+window.addEventListener("keydown", function(e) {
+    if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
+        e.preventDefault();
+    }
+}, false);
+
 

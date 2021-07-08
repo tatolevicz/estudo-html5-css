@@ -7,7 +7,7 @@ class Player{
         this.img = img;
         this.scale = scale;
         this.rotation = 0;
-        this.rotSpeed = 0.3;
+        this.rotSpeed = 0.0;
 
         this.speedY = 0;
         this.gravity = 0.2;
@@ -34,10 +34,13 @@ class Player{
         var ctx = canvas.getContext("2d");        
 
         ctx.save();
-        ctx.translate(this.x,this.y);
+
+        ctx.translate(this.x,this.y - this.height/2);
         ctx.rotate(this.rotation);
 
+        ctx.translate(0,this.height/2);
         ctx.drawImage(this.img,-this.width/2, -this.height, this.width ,this.height);
+
         ctx.restore();
     }
 
@@ -48,11 +51,11 @@ class Player{
     }
 
     setPosition(x,y){
-
-
         if(this.y < (y - 10))
         {
             this.grounded = false;
+            
+            this.rotation += 0.01;
         }
         else{
             this.grounded = true;
@@ -79,8 +82,11 @@ class Player{
         this.y += this.speedY;
     }
 
-    setRotation(rad){
-        this.rotation -= (this.rotation + rad)*this.rotSpeed;
+    rotate(increment){
+        this.rotation -= increment*this.rotSpeed;
+
+        if(this.rotation > Math.PI) this.rotation = -Math.PI;
+        if(this.rotation < -Math.PI) this.rotation = Math.PI;
     }
 
     setSpeed(speed){
