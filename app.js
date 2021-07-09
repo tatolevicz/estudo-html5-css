@@ -15,15 +15,21 @@ server.listen(3000,() => {
 
 app.use(express.static(__dirname + "/public"));
 
+//server handling connections 
 io.on('connection', (socket) => {
+
+    //log the user id connecting
     console.log('a user connected: ' + socket.id);
 
+    //server get the messages from all users here
     socket.on('chat message', (msg) => {
-    console.log('message: ' + msg);
+        //broadicasting the message to everyone
+        io.emit('client-chat-message',msg);
     });
 
+    //log the user id disconnecting
     socket.on('disconnect', () => {
-    console.log('user disconnected: ' + socket.id);
+        console.log('user disconnected: ' + socket.id);
     });
 });
 
