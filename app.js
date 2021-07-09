@@ -1,3 +1,5 @@
+
+const { Noise }  = require("./scripts/server/utils/noise.js")
 const express = require("express");
 const app = express();
 const http = require("http");
@@ -18,7 +20,9 @@ server.listen(3000,() => {
 app.use(express.static(__dirname));
 
 let playersOn = []
-let roadYValues;
+
+let noise = new Noise(500,160);
+noise.populate();
 
 // - check if it is the first player connected to the game
 // - so request the road values from it just to test
@@ -26,30 +30,39 @@ let roadYValues;
 //server handling connections 
 io.on('connection', (socket) => {
 
-    let wasEmpty = playersOn.length <= 0;
 
     //log the user id connecting
     console.log('Player connected: ' + socket.id);
-    
+
+    //create the intial game on client
+    socket.emit("client-create-road",noise.getValues());
+    socket.emit("client-create-sky",noise.getValues());
+    socket.emit("client-create-player",socket.id);
+
+
+    //add this player to the connected array
     playersOn.push(socket);
     console.log('Players active: ' + playersOn.length);
     
 
-    if(wasEmpty && playersOn.length === 1){
-        socket.emit("client-requested-game-data",socket.id, "Oi");
-    }
-    else
-        socket.emit("client-populate-road",roadYValues);
+    socket.on("start-game-pressed",() =>{
+        io.emit("client-init-game");
+    });
+    
 
-    socket.on("send-game-data",(roadValues)=>{
-        roadYValues = roadValues;
+    //tell to this player create the others as enemys
+    playersOn.forEach(p => {
+        socket.emit("client-create-enemy", p.id);
     });
 
-    socket.on('player-input', (msg) => {
-        messagesHistory.push(msg);
-        //broadicasting the message to everyone
-        io.emit('client-player-input',msg);
-    });
+    //now tell everyone connected to create a new enemy
+    io.emit("client-create-enemy",socket.id);
+
+    // socket.on('player-input', (msg) => {
+    //     messagesHistory.push(msg);
+    //     //broadicasting the message to everyone
+    //     io.emit('client-player-input',msg);
+    // });
 
     //log the user id disconnecting
     socket.on('disconnect', () => {

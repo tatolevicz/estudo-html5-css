@@ -9,6 +9,7 @@ class States{
     static PLAYING = 2;
     static FINISHING = 3;
     static FINISHED = 4;
+    static WAITING_SERVER = 5;
 
 
     getState(){

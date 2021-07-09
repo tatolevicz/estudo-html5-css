@@ -2,8 +2,8 @@
 class Player{
 
 
-    constructor(img, scale){
-        
+    constructor(img, scale, id){
+        this.id = id;
         this.img = img;
         this.scale = scale;
         this.rotation = 0;

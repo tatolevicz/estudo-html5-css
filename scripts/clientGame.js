@@ -1,3 +1,14 @@
+
+
+var socket = io();
+
+
+socket.on("client-populate-road", (yValues) => {
+    this.road.yValues = yValues;
+    console.log(yValues);
+});
+
+// import {Noise} from "./scripts/noise";
 /*
 1 - get the canvas context
 2 - set the canvas size
@@ -22,17 +33,22 @@ import { States } from "./states.js";
 import { InputHandler } from "./input.js";
 
 
-class Game{
+class ClientGame{
     constructor(socket) {
         this.startBtn = document.querySelector("#startGameBtn");
         this.uiContainer = document.querySelector("#container-ui");
+        this.enemys = [];
 
         this.states = new States();
-        // step 1
+        this.states.setState(States.WAITING_SERVER);
+
         this.canvas = document.querySelector("canvas");
         this.context = this.canvas.getContext("2d");
 
-        //step 2
+        this.road = undefined;
+        this.sky = undefined;
+        this.player = undefined;
+
         this.canvas.width = window.innerWidth * 0.8 < 1000 ? window.innerWidth * 0.8 : 1000;
         this.canvas.height = 500;
         this.gameSpeed = 0;
@@ -42,7 +58,41 @@ class Game{
 
         this.playerOffsetX = this.canvas.width/4;
 
-        // step 3 and 4
+
+        window.onkeydown = ev => this.inputHandler.controls[ev.key] = 1;
+        window.onkeyup = ev => this.inputHandler.controls[ev.key] = 0;
+
+    
+        this.startBtn.addEventListener("click",() => {
+            socket.emit("start-game-pressed");
+        });
+
+
+        socket.on("client-create-road",(values) =>{
+            this.createRoad(values);
+        });
+
+        socket.on("client-create-sky",(values) =>{
+            this.createSky(values);
+        });
+
+        socket.on("client-create-player",(playerId) =>{
+            this.createPlayer(playerId);
+        });
+
+        socket.on("client-create-enemy",(playerId) =>{
+            this.createEnemy(playerId);
+        });
+
+        socket.on("client-init-game",() => {
+            this.uiContainer.setAttribute("style","display: none !important");
+            this.states.setState(States.STARTING);
+        });
+    }
+
+
+    createRoad(yValues){
+    // step 3 and 4
         this.road = new Road(
             this.canvas, 
             0, 
@@ -56,8 +106,13 @@ class Game{
             true,
             false,
             3.0);  
-            
-             // step 3 and 4
+
+        this.road.yValues = yValues;
+    }
+    
+
+    createSky(yValues){
+            // step 3 and 4
         this.sky = new Road(
             this.canvas, 
             0, 
@@ -72,22 +127,36 @@ class Game{
             true,
             0.8);
 
-            let img = new Image();
-            img.src = './assets/images/player.png';
+        this.sky.yValues = yValues;
+    }
 
-            this.player = new Player(img,0.7);
+    createPlayer(playerId){
+        let img = new Image();
+        img.src = './assets/images/player.png';
+        this.player = new Player(img,0.7,playerId);
+        this.player.onGrounded = this.onPlayerGrounded.bind(this);
+    }
 
-            this.player.onGrounded = this.onPlayerGrounded.bind(this);
+    createEnemy(playerId){
 
-            window.onkeydown = ev => this.inputHandler.controls[ev.key] = 1;
-            window.onkeyup = ev => this.inputHandler.controls[ev.key] = 0;
+        if(playerId === this.player.id) return;
 
+        let img = new Image();
+        img.src = './assets/images/player.png';
+        let enemy = new Player(img,0.7,playerId);
+        enemy.setPosition(this.playerOffsetX, this.canvas.height/2);
 
-            this.startBtn.addEventListener("click",() => {
-                this.uiContainer.setAttribute("style","display: none !important");
-                this.states.setState(States.STARTING);
-            });
-        }
+        this.enemys.push(enemy);
+
+        console.log("Enemys: " + this.enemys.length);
+
+    }
+
+    shouldReleaseStartUI()
+    {
+        return this.road && this.sky && this.player;
+    }
+    
 
     onPlayerGrounded()
     {
@@ -120,12 +189,18 @@ class Game{
         this.context.fillStyle = GameColors.backgroundColor;
         this.context.fillRect(0,0,this.canvas.width, this.canvas.height);
 
+        if(this.states.getState() === States.WAITING_SERVER)
+            return;
         //draw the sky to be the most far element in front the background
         this.sky.draw();
 
         //draw the road and player with any sequence cause they will not overlap each other
         this.road.draw();
         this.player.draw();
+
+        this.enemys.forEach(enemy => {
+            enemy.draw();
+        });
     }
 
     update(){
@@ -179,6 +254,13 @@ class Game{
             case States.NONE: 
                 this.gameSpeed -= this.gameSpeed*this.gameAcceleration*3;
                 break
+            case States.WAITING_SERVER:
+                if(this.shouldReleaseStartUI())
+                {
+                    this.uiContainer.setAttribute("style","display: flex !important");
+                    this.states.setState(States.NONE);
+                }
+            break;
             default:
                 break;
         }
@@ -197,7 +279,6 @@ class Game{
         this.player.setPosition(playerX,playerY);
     }
 
-
     updatePlayerRotation()
     {
     
@@ -207,6 +288,19 @@ class Game{
             this.player.rotate(this.player.rotation + roadAngle);
         }
     }
+
+
+    updateEnemysPositionAndRotation(x,y,rad)
+    {
+        this.enemys.forEach(element => {
+            
+        });
+        let playerX = this.playerOffsetX;
+        let playerY = this.road.getRoadY(this.road.getRoadPosition(playerX));
+        this.player.setPosition(playerX,playerY);
+    }
+
+
 
     getRoadAngle()
     {
@@ -246,7 +340,7 @@ class Game{
     }
 }
 
-var game = new Game(socket);
+var game = new ClientGame(socket);
 
 function mainLoop(){
     game.loop();
