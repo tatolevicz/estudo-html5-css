@@ -26,6 +26,9 @@ import { InputHandler } from "./input.js";
 class Game{
     constructor() {
 
+        this.startBtn = document.querySelector("#startGameBtn");
+        this.uiContainer = document.querySelector("#container-ui");
+
         this.states = new States();
         // step 1
         this.canvas = document.querySelector("canvas");
@@ -80,6 +83,12 @@ class Game{
 
             window.onkeydown = ev => this.inputHandler.controls[ev.key] = 1;
             window.onkeyup = ev => this.inputHandler.controls[ev.key] = 0;
+
+
+            this.startBtn.addEventListener("click",() => {
+                this.uiContainer.setAttribute("style","display: none !important");
+                this.states.setState(States.STARTING);
+            });
     }
 
     onPlayerGrounded()
@@ -126,7 +135,15 @@ class Game{
         //do the game logic
         switch (this.states.getState()) {
             case States.STARTING:
-                this.states.setState(States.PLAYING);
+
+                if(this.player.grounded) {
+                    this.states.setState(States.PLAYING)
+                    break;
+                }
+        
+                //update the position and rotation of player
+                this.updatePlayerPosition();
+                this.updatePlayerRotation();
                 break;
             case States.PLAYING: 
                 this.sky.setSpeed(this.gameSpeed);
@@ -147,19 +164,22 @@ class Game{
                 this.player.setSpeed(this.gameSpeed);
 
                 this.updatePlayerPosition();
+
+                if(this.gameSpeed <= 0.05){
+                    this.states.setState(States.FINISHED);
+                }
+
                 break;
             case States.FINISHED: 
+                    this.gameSpeed = 0;
+                    this.playerOffsetX = this.canvas.width/4;
+                    this.uiContainer.setAttribute("style","display: flex !important");
+                    this.player.rotation = 0;
+                    this.player.setPosition(this.playerOffsetX, -this.player.height);
+                    this.states.setState(States.NONE);
                 break;
             case States.NONE: 
-                if(this.player.grounded) {
-                    this.states.setState(States.STARTING)
-                    break;
-                }
-        
-                //update the position and rotation of player
-                this.updatePlayerPosition();
-                this.updatePlayerRotation();
-
+                this.gameSpeed -= this.gameSpeed*this.gameAcceleration*3;
                 break
             default:
                 break;
