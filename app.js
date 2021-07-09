@@ -15,14 +15,22 @@ server.listen(3000,() => {
 
 app.use(express.static(__dirname + "/public"));
 
+let messagesHistory = []
+
+
 //server handling connections 
 io.on('connection', (socket) => {
 
     //log the user id connecting
     console.log('a user connected: ' + socket.id);
+    
+    messagesHistory.forEach(msg => {
+        socket.emit("client-chat-message",msg);
+    });
 
     //server get the messages from all users here
     socket.on('chat message', (msg) => {
+        messagesHistory.push(msg);
         //broadicasting the message to everyone
         io.emit('client-chat-message',msg);
     });
@@ -32,6 +40,7 @@ io.on('connection', (socket) => {
         console.log('user disconnected: ' + socket.id);
     });
 });
+
 
 
 
