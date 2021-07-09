@@ -48,7 +48,7 @@ class Game{
             this.canvas.width*1.1, 
             this.canvas.height, 
             this.canvas.height, 
-            50,
+            500,
             180, 
             160, 
             GameColors.hillsColor,
@@ -76,7 +76,7 @@ class Game{
 
             this.player = new Player(img,0.7);
 
-            this.player.onGrounded = this.onPlayerGrounded;
+            this.player.onGrounded = this.onPlayerGrounded.bind(this);
 
             window.onkeydown = ev => this.inputHandler.controls[ev.key] = 1;
             window.onkeyup = ev => this.inputHandler.controls[ev.key] = 0;
@@ -84,13 +84,21 @@ class Game{
 
     onPlayerGrounded()
     {
-        console.log("Player grounded");
+        let playerAngle = this.player.rotation;
+        let roadAngle = this.getRoadAngle();
+
+        let angle = playerAngle + roadAngle;
+
+        if(angle > Math.PI / 2  || angle < -Math.PI/1.65)
+        {
+            this.states.setState(States.FINISHING);
+        }
     }
 
     loop(){
 
-        //get the inputs from user
-        this.inputs();
+        if(this.isPlaying())
+            this.inputs();
 
         //update game logic and objects
         this.update();
@@ -124,23 +132,38 @@ class Game{
                 this.sky.setSpeed(this.gameSpeed);
                 this.road.setSpeed(this.gameSpeed);
                 this.player.setSpeed(this.gameSpeed);
+                //update the position and rotation of player
+                this.updatePlayerPosition();
+                this.updatePlayerRotation();
                 break;
             case States.FINISHING: 
+                this.playerOffsetX -= 5
+                this.player.rotation -= Math.PI * 0.2;
+
+                this.gameSpeed -= this.gameSpeed*this.gameAcceleration;
+
+                this.sky.setSpeed(this.gameSpeed);
+                this.road.setSpeed(this.gameSpeed);
+                this.player.setSpeed(this.gameSpeed);
+
+                this.updatePlayerPosition();
                 break;
             case States.FINISHED: 
                 break;
             case States.NONE: 
-                if(this.player.grounded)
-                {
+                if(this.player.grounded) {
                     this.states.setState(States.STARTING)
+                    break;
                 }
+        
+                //update the position and rotation of player
+                this.updatePlayerPosition();
+                this.updatePlayerRotation();
+
+                break
             default:
                 break;
         }
-
-        //update the position and rotation of player
-        this.updatePlayerPosition();
-        this.updatePlayerRotation();
     }
 
     checkGameOver()
@@ -159,12 +182,20 @@ class Game{
 
     updatePlayerRotation()
     {
-        let roadAngle= this.road.getRoadAngle(this.road.getRoadPosition(this.playerOffsetX) - this.player.width/3,this.road.getRoadPosition(this.playerOffsetX) + this.player.width/3);
-
+    
+        let roadAngle = this.getRoadAngle();
         if(this.player.grounded){
             this.player.rotSpeed = 0.3;
             this.player.rotate(this.player.rotation + roadAngle);
         }
+    }
+
+    getRoadAngle()
+    {
+        return this.road.getRoadAngle(
+            this.road.getRoadPosition(this.playerOffsetX) - this.player.width/3,
+            this.road.getRoadPosition(this.playerOffsetX) + this.player.width/3
+            );
     }
 
     inputs(){
@@ -190,7 +221,14 @@ class Game{
         this.player.rotate(rotDirection);
 
     }
+
+    isPlaying()
+    {
+        return this.states.getState() === States.PLAYING;
+    }
 }
+
+
 
 var game = new Game();
 
