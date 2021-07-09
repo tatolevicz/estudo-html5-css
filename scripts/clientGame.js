@@ -28,6 +28,7 @@ socket.on("client-populate-road", (yValues) => {
 
 import { Road } from "./road.js";
 import { Player } from "./player.js";
+import { Enemy } from "./enemy.js";
 import { GameColors } from "./colors.js";
 import { States } from "./states.js";
 import { InputHandler } from "./input.js";
@@ -35,6 +36,7 @@ import { InputHandler } from "./input.js";
 
 class ClientGame{
     constructor(socket) {
+        this.socket = socket;
         this.startBtn = document.querySelector("#startGameBtn");
         this.uiContainer = document.querySelector("#container-ui");
         this.enemys = [];
@@ -64,7 +66,7 @@ class ClientGame{
 
     
         this.startBtn.addEventListener("click",() => {
-            socket.emit("start-game-pressed");
+            // socket.emit("start-game-pressed");
         });
 
 
@@ -84,10 +86,21 @@ class ClientGame{
             this.createEnemy(playerId);
         });
 
-        socket.on("client-init-game",() => {
-            this.uiContainer.setAttribute("style","display: none !important");
-            this.states.setState(States.STARTING);
+        socket.on("client-update-enemy",(enemyData) =>{              
+
+            this.updateEnemy(enemyData.id, 
+                enemyData.x,
+                enemyData.y, 
+                enemyData.angle,
+                enemyData.speed);
+
+            console.log(enemyData);
         });
+
+        // socket.on("client-init-game",() => {
+        //     this.uiContainer.setAttribute("style","display: none !important");
+        //     this.states.setState(States.STARTING);
+        // });
     }
 
 
@@ -143,8 +156,10 @@ class ClientGame{
 
         let img = new Image();
         img.src = './assets/images/player.png';
-        let enemy = new Player(img,0.7,playerId);
-        enemy.setPosition(this.playerOffsetX, this.canvas.height/2);
+        let enemy = new Enemy(img,0.7,playerId);
+
+        enemy.x = this.playerOffsetX;
+        enemy.y =  this.canvas.height/2;
 
         this.enemys.push(enemy);
 
@@ -161,7 +176,7 @@ class ClientGame{
     onPlayerGrounded()
     {
         let playerAngle = this.player.rotation;
-        let roadAngle = this.getRoadAngle();
+        let roadAngle = this.getRoadAngle(this.playerOffsetX);
 
         let angle = playerAngle + roadAngle;
 
@@ -198,8 +213,9 @@ class ClientGame{
         this.road.draw();
         this.player.draw();
 
-        this.enemys.forEach(enemy => {
-            enemy.draw();
+
+        this.enemys.forEach(e => {
+            e.draw();
         });
     }
 
@@ -257,8 +273,10 @@ class ClientGame{
             case States.WAITING_SERVER:
                 if(this.shouldReleaseStartUI())
                 {
-                    this.uiContainer.setAttribute("style","display: flex !important");
-                    this.states.setState(States.NONE);
+                    // this.uiContainer.setAttribute("style","display: flex !important");
+                    // this.uiContainer.setAttribute("style","display: none !important");
+                    this.states.setState(States.STARTING);
+                    // this.states.setState(States.NONE);
                 }
             break;
             default:
@@ -266,23 +284,27 @@ class ClientGame{
         }
     }
 
-    checkGameOver()
-    {
-
-    }
-    
-
     updatePlayerPosition()
     {
         let playerX = this.playerOffsetX;
         let playerY = this.road.getRoadY(this.road.getRoadPosition(playerX));
         this.player.setPosition(playerX,playerY);
+
+
+        this.socket.emit("player-input",
+        {
+            id: this.player.id, 
+            x: this.player.x,
+            y: this.player.y, 
+            angle:  this.player.rotation,
+            speed: this.gameSpeed
+        });
     }
 
     updatePlayerRotation()
     {
     
-        let roadAngle = this.getRoadAngle();
+        let roadAngle = this.getRoadAngle(this.playerOffsetX);
         if(this.player.grounded){
             this.player.rotSpeed = 0.3;
             this.player.rotate(this.player.rotation + roadAngle);
@@ -290,23 +312,31 @@ class ClientGame{
     }
 
 
-    updateEnemysPositionAndRotation(x,y,rad)
+    updateEnemy(enemyId,x,y,rad, speed)
     {
-        this.enemys.forEach(element => {
-            
-        });
-        let playerX = this.playerOffsetX;
-        let playerY = this.road.getRoadY(this.road.getRoadPosition(playerX));
-        this.player.setPosition(playerX,playerY);
+        for (let index = 0; index < this.enemys.length; index++)
+        {
+            const enemy = this.enemys[index];
+
+            if(enemy.id === enemyId)
+            {
+                enemy.x = x;
+                enemy.y = y;
+
+                enemy.rotSpeed = 0.3;
+                enemy.rotation = rad;
+
+                enemy.speed = speed;
+                break;
+            }
+        }
     }
 
-
-
-    getRoadAngle()
+    getRoadAngle(x)
     {
         return this.road.getRoadAngle(
-            this.road.getRoadPosition(this.playerOffsetX) - this.player.width/3,
-            this.road.getRoadPosition(this.playerOffsetX) + this.player.width/3
+            this.road.getRoadPosition(x) - this.player.width/3,
+            this.road.getRoadPosition(x) + this.player.width/3
             );
     }
 
@@ -331,7 +361,6 @@ class ClientGame{
         
         this.player.rotSpeed = 0.1;
         this.player.rotate(rotDirection);
-
     }
 
     isPlaying()

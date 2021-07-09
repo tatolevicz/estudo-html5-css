@@ -45,11 +45,6 @@ io.on('connection', (socket) => {
     console.log('Players active: ' + playersOn.length);
     
 
-    socket.on("start-game-pressed",() =>{
-        io.emit("client-init-game");
-    });
-    
-
     //tell to this player create the others as enemys
     playersOn.forEach(p => {
         socket.emit("client-create-enemy", p.id);
@@ -58,11 +53,9 @@ io.on('connection', (socket) => {
     //now tell everyone connected to create a new enemy
     io.emit("client-create-enemy",socket.id);
 
-    // socket.on('player-input', (msg) => {
-    //     messagesHistory.push(msg);
-    //     //broadicasting the message to everyone
-    //     io.emit('client-player-input',msg);
-    // });
+    socket.on('player-input', (playerData) => {
+        socket.broadcast.emit("client-update-enemy",{id: socket.id, x: playerData.x, y: playerData.y, angle: playerData.angle, speed: playerData.speed});
+    });
 
     //log the user id disconnecting
     socket.on('disconnect', () => {

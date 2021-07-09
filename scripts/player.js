@@ -13,10 +13,16 @@ class Player{
         this.gravity = 0.2;
 
         this.speed = 1;
-        
-        this.width = this.img.width*this.scale;
-        this.height = this.img.height*this.scale;
 
+        this.img = new Image();
+
+        this.img.onload = () => {   
+            this.width = this.img.width*this.scale;
+            this.height = this.img.height*this.scale;
+        }
+
+        this.img.src = './assets/images/player.png';
+        
         this.x = 0;
         this.y = 0;
 
@@ -24,9 +30,6 @@ class Player{
         this.lastGroundedState = false;
 
         this.onGrounded = undefined;
-
-        this.img = new Image();
-        this.img.src = './assets/images/player.png';
     }
 
     draw(){
