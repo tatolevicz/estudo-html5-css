@@ -22,10 +22,10 @@ import { GameColors } from "./colors.js";
 import { States } from "./states.js";
 import { InputHandler } from "./input.js";
 
+var socket = io();
 
 class Game{
-    constructor() {
-
+    constructor(socket) {
         this.startBtn = document.querySelector("#startGameBtn");
         this.uiContainer = document.querySelector("#container-ui");
 
@@ -89,7 +89,17 @@ class Game{
                 this.uiContainer.setAttribute("style","display: none !important");
                 this.states.setState(States.STARTING);
             });
-    }
+
+            //SOCKET HANDLING
+            socket.on("client-requested-game-data", () => {
+                socket.emit("send-game-data",this.road.yValues);
+            });
+
+            socket.on("client-populate-road", (yValues) => {
+                this.road.yValues = yValues;
+                console.log(yValues);
+            });
+        }
 
     onPlayerGrounded()
     {
@@ -248,9 +258,7 @@ class Game{
     }
 }
 
-
-
-var game = new Game();
+var game = new Game(socket);
 
 function mainLoop(){
     game.loop();
