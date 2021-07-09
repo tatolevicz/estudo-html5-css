@@ -140,7 +140,7 @@ class Game{
                 this.playerOffsetX -= 5
                 this.player.rotation -= Math.PI * 0.2;
 
-                this.gameSpeed -= this.gameSpeed*this.gameAcceleration;
+                this.gameSpeed -= this.gameSpeed*this.gameAcceleration*3;
 
                 this.sky.setSpeed(this.gameSpeed);
                 this.road.setSpeed(this.gameSpeed);
