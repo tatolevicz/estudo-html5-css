@@ -38,7 +38,7 @@ class Enemy{
 
         ctx.save();
 
-        ctx.translate(this.x,this.y - this.height/2);
+        ctx.translate(this.x, this.y - this.height/2);
         ctx.rotate(this.rotation);
 
         ctx.translate(0,this.height/2);

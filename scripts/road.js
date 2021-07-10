@@ -53,7 +53,7 @@ class Road{
         ctx.fillStyle = this.color;
         ctx.fill();
 
-        this.pixelsToMove += this.speed*this.distanceParalaxe ;
+        this.pixelsToMove += this.speed*this.distanceParalaxe;
     }
 
     // f should be a number between 0 - 1
@@ -89,7 +89,7 @@ class Road{
     }
 
     getRoadPosition(xPixel){
-       return xPixel + this.pixelsToMove;
+        return xPixel + this.pixelsToMove;
     }
 
     // returns the angle of to road points in rad

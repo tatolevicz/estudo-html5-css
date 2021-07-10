@@ -30,6 +30,11 @@ noise.populate();
 //server handling connections 
 io.on('connection', (socket) => {
 
+    if(playersOn.length <= 0)
+    {
+        noise = new Noise(500,160);
+        noise.populate();
+    }
 
     //log the user id connecting
     console.log('Player connected: ' + socket.id);
@@ -55,10 +60,18 @@ io.on('connection', (socket) => {
 
     socket.on('player-input', (playerData) => {
         
-        socket.emit("client-update-player",{x: playerData.x, y: playerData.y, angle: playerData.angle, speed: playerData.speed});
+        socket.emit("client-update-player",{
+            x: playerData.x, 
+            y: playerData.y, 
+            angle: playerData.angle, 
+            speed: playerData.speed});
 
-        socket.broadcast.emit("client-update-enemy",{id: socket.id, x: playerData.x, y: playerData.y, angle: playerData.angle, speed: playerData.speed});
-
+        socket.broadcast.emit("client-update-enemy",{
+            id: socket.id, 
+            x: playerData.realX, 
+            y: playerData.y, 
+            angle: playerData.angle, 
+            speed: playerData.speed});
     });
 
     //log the user id disconnecting

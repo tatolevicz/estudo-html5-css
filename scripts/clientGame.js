@@ -97,7 +97,7 @@ class ClientGame{
             // console.log(enemyData);
         });
 
-         socket.on("client-update-player",(playerData) =>{              
+        socket.on("client-update-player",(playerData) =>{              
 
             this.updatePlayer( 
                 playerData.x,
@@ -105,7 +105,7 @@ class ClientGame{
                 playerData.angle,
                 playerData.speed);
 
-            console.log(playerData);
+            // console.log(playerData);
         });
         // socket.on("client-init-game",() => {
         //     this.uiContainer.setAttribute("style","display: none !important");
@@ -179,7 +179,7 @@ class ClientGame{
 
     shouldReleaseStartUI()
     {
-        return this.road && this.sky && this.player;
+        return this.road && this.sky;// && this.player;
     }
     
 
@@ -197,9 +197,8 @@ class ClientGame{
     }
 
     loop(){
-
-        if(this.isPlaying())
-            this.inputs();
+        // if(this.isPlaying())
+        //     this.inputs();
 
         //update game logic and objects
         this.update();
@@ -221,8 +220,9 @@ class ClientGame{
 
         //draw the road and player with any sequence cause they will not overlap each other
         this.road.draw();
-        this.player.draw();
 
+        if(this.player)
+            this.player.draw();
 
         this.enemys.forEach(e => {
             e.draw();
@@ -230,7 +230,6 @@ class ClientGame{
     }
 
     update(){
-
         //do the game logic
         switch (this.states.getState()) {
             case States.STARTING:
@@ -297,11 +296,13 @@ class ClientGame{
     {
         let playerX = this.playerOffsetX;
         let playerY = this.road.getRoadY(this.road.getRoadPosition(playerX));
-        // this.player.setPosition(playerX,playerY);
 
+        this.player.realXPos = this.road.getRoadPosition(playerX);
+        
         this.socket.emit("player-input",
         {
-            id: this.player.id, 
+            id: this.player.id,
+            realX: this.player.realXPos,
             x: playerX,
             y: playerY, 
             angle:  this.player.rotation,
@@ -318,7 +319,6 @@ class ClientGame{
             this.player.rotate(this.player.rotation + roadAngle);
         }
     }
-
 
     updateEnemy(enemyId,x,y,rad, speed)
     {
@@ -397,6 +397,7 @@ function mainLoop(){
 
 mainLoop();
 
+//to avoid default behavior using this key in the browser
 window.addEventListener("keydown", function(e) {
     if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
         e.preventDefault();

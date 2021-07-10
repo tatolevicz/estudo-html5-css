@@ -9,6 +9,8 @@ class Player{
         this.rotation = 0;
         this.rotSpeed = 0.0;
 
+        this.realXPos = 0;
+
         this.speedY = 0;
         this.gravity = 0.2;
 
@@ -86,6 +88,7 @@ class Player{
         }
         
         this.x = x;
+
         // console.log(this.speedY);
         this.y += this.speedY;
     }
