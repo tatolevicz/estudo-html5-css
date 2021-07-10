@@ -42,8 +42,6 @@ class Game{
 
         this.inputHandler = new InputHandler();
 
-        this.playerOffsetX = this.canvas.width/4;
-
         // step 3 and 4
         this.road = new Road(
             this.canvas, 
@@ -57,7 +55,7 @@ class Game{
             GameColors.hillsColor,
             true,
             false,
-            3.0);  
+            1.0);  
             
              // step 3 and 4
         this.sky = new Road(
@@ -74,21 +72,23 @@ class Game{
             true,
             0.8);
 
-            let img = new Image();
-            img.src = './assets/images/player.png';
+        let img = new Image();
+        img.src = './assets/images/player.png';
 
-            this.player = new Player(img,0.7);
+        this.player = new Player(img,0.7);
 
-            this.player.onGrounded = this.onPlayerGrounded.bind(this);
+        this.player.playerOffsetX = this.canvas.width/4;
 
-            window.onkeydown = ev => this.inputHandler.controls[ev.key] = 1;
-            window.onkeyup = ev => this.inputHandler.controls[ev.key] = 0;
+        this.player.onGrounded = this.onPlayerGrounded.bind(this);
+
+        window.onkeydown = ev => this.inputHandler.controls[ev.key] = 1;
+        window.onkeyup = ev => this.inputHandler.controls[ev.key] = 0;
 
 
-            this.startBtn.addEventListener("click",() => {
-                this.uiContainer.setAttribute("style","display: none !important");
-                this.states.setState(States.STARTING);
-            });
+        this.startBtn.addEventListener("click",() => {
+            this.uiContainer.setAttribute("style","display: none !important");
+            this.states.setState(States.STARTING);
+        });
     }
 
     onPlayerGrounded()
@@ -146,15 +146,15 @@ class Game{
                 this.updatePlayerRotation();
                 break;
             case States.PLAYING: 
-                this.sky.setSpeed(this.gameSpeed);
-                this.road.setSpeed(this.gameSpeed);
+                // this.sky.setSpeed(this.gameSpeed);
+                // this.road.setSpeed(this.gameSpeed);
                 this.player.setSpeed(this.gameSpeed);
                 //update the position and rotation of player
                 this.updatePlayerPosition();
                 this.updatePlayerRotation();
                 break;
             case States.FINISHING: 
-                this.playerOffsetX -= 5
+                this.player.playerOffsetX -= 5
                 this.player.rotation -= Math.PI * 0.2;
 
                 this.gameSpeed -= this.gameSpeed*this.gameAcceleration*3;
@@ -172,10 +172,10 @@ class Game{
                 break;
             case States.FINISHED: 
                     this.gameSpeed = 0;
-                    this.playerOffsetX = this.canvas.width/4;
+                    this.player.playerOffsetX = this.canvas.width/4;
                     this.uiContainer.setAttribute("style","display: flex !important");
                     this.player.rotation = 0;
-                    this.player.setPosition(this.playerOffsetX, -this.player.height);
+                    this.player.setPositionY(-this.player.height);
                     this.states.setState(States.NONE);
                 break;
             case States.NONE: 
@@ -191,12 +191,11 @@ class Game{
 
     }
     
-
     updatePlayerPosition()
     {
-        let playerX = this.playerOffsetX;
-        let playerY = this.road.getRoadY(this.road.getRoadPosition(playerX));
-        this.player.setPosition(playerX,playerY);
+        let playerY = this.road.getRoadY(this.player.x + this.player.playerOffsetX);
+        this.player.setPositionY(playerY);
+        this.road.currentX = this.player.x;
     }
 
 
@@ -213,8 +212,8 @@ class Game{
     getRoadAngle()
     {
         return this.road.getRoadAngle(
-            this.road.getRoadPosition(this.playerOffsetX) - this.player.width/3,
-            this.road.getRoadPosition(this.playerOffsetX) + this.player.width/3
+            this.player.x + this.player.playerOffsetX - this.player.width/3,
+            this.player.x + this.player.playerOffsetX + this.player.width/3
             );
     }
 
@@ -239,7 +238,6 @@ class Game{
         
         this.player.rotSpeed = 0.1;
         this.player.rotate(rotDirection);
-
     }
 
     isPlaying()

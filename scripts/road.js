@@ -26,6 +26,7 @@ class Road{
         this.distanceParalaxe = paralexAceleration;
 
         this.originAbove = originAbove;
+        this.currentX = 0;
     }
 
     draw(){
@@ -39,9 +40,7 @@ class Road{
         let i = 0;
         while(i < this.endX){
 
-            let x = this.getRoadPosition(i);
-            let y = this.getRoadY(x);
-
+            let y = this.getRoadY(this.currentX + i);
             ctx.lineTo(i,y);
             i++;
         }
@@ -53,7 +52,8 @@ class Road{
         ctx.fillStyle = this.color;
         ctx.fill();
 
-        this.pixelsToMove += this.speed*this.distanceParalaxe ;
+        // this.pixelsToMove += this.speed*this.distanceParalaxe ;
+        this.pixelsToMove = this.currentX*this.distanceParalaxe ;
     }
 
     // f should be a number between 0 - 1
@@ -88,9 +88,6 @@ class Road{
         return height;
     }
 
-    getRoadPosition(xPixel){
-       return xPixel + this.pixelsToMove;
-    }
 
     // returns the angle of to road points in rad
     getRoadAngle(x1,x2){
