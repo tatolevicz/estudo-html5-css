@@ -85,7 +85,7 @@ class Player{
             this.speedY += this.gravity;
         }
         else{
-            this.speedY -= (this.y - y) *this.gravity*Math.abs(this.speed);
+            this.speedY -= (this.y - y) *this.gravity*5;
             this.y = y;
         }
         

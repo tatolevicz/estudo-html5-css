@@ -39,6 +39,8 @@ class Game{
         this.canvas.height = 500;
         this.gameSpeed = 0;
         this.gameAcceleration = 0.03;
+        this.groundFriction = 0.01;
+
 
         this.inputHandler = new InputHandler();
 
@@ -75,7 +77,7 @@ class Game{
         let img = new Image();
         img.src = './assets/images/player.png';
 
-        this.player = new Player(img,0.7);
+        this.player = new Player(img,0.7, true);
 
         this.player.playerOffsetX = this.canvas.width/4;
 
@@ -180,7 +182,8 @@ class Game{
                 break;
         }
 
-        // this.road.currentX = this.player.x;
+        if(this.player.shouldStickWithCamera)
+            this.road.currentX = this.player.x;
 
     }
 
@@ -228,7 +231,11 @@ class Game{
         }
         else if(this.player.grounded)
         {
-            this.gameSpeed -=  this.gameSpeed*this.gameAcceleration + gravityAcelleration*0.5;
+            if(gravityAcelleration < 0)
+                this.gameSpeed -=  this.gameSpeed*this.groundFriction - gravityAcelleration*0.5;
+            else
+                this.gameSpeed +=  this.gameSpeed*(-this.groundFriction) + gravityAcelleration*0.5;
+
         }
 
         let rotDirection = (this.inputHandler.controls.ArrowLeft - this.inputHandler.controls.ArrowRight);
