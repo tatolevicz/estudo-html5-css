@@ -30,6 +30,7 @@ class Game{
         this.socket = socket;
         this.startBtn = document.querySelector("#startGameBtn");
         this.uiContainer = document.querySelector("#container-ui");
+        this.enemys = [];
 
         this.states = new States();
         // step 1
@@ -51,8 +52,7 @@ class Game{
 
         this.startBtn.addEventListener("click",() => {
             this.hideUI();
-            this.addPlayer();
-            this.states.setState(States.STARTING);
+            this.socket.emit("game-started");
         });
 
         //SOCKETS 
@@ -61,6 +61,17 @@ class Game{
         });
 
         this.socket.emit("request-game");
+
+        this.socket.on("create-player",(id) =>{
+            this.addPlayer();
+            this.player.id = id;
+            socket.emit("player-created");
+            this.states.setState(States.STARTING);
+        });
+
+        this.socket.on("create-enemy",(id) =>{
+            this.addEnemy(id);
+        });
     }
 
     createRoad(){
@@ -76,11 +87,17 @@ class Game{
         this.player.playerOffsetX = this.canvas.width/4;
         this.player.onGrounded = this.onPlayerGrounded.bind(this);
     }
-å
-    addEnemy(){
 
+    addEnemy(id){
+        
+        if(this.player.id === id) return;
+
+        let enemy = new Player(0.7, false);
+        enemy.playerOffsetX = this.canvas.width/4;
+        enemy.id = id;
+        this.enemys.push(enemy);
+        console.log("Enemy added!");
     }
-
 
     onPlayerGrounded()
     {
@@ -96,7 +113,6 @@ class Game{
     }
 
     loop(){
-  
         if(this.isPlaying())
             this.inputs();
 
@@ -124,6 +140,11 @@ class Game{
 
         if(this.player)
             this.player.draw();
+
+        this.enemys.forEach(enemy => {
+            this.updateEnemyPosition(enemy);
+            enemy.draw();
+        });
     }
 
     update(){
@@ -183,11 +204,6 @@ class Game{
 
     }
 
-    checkGameOver()
-    {
-
-    }
-    
     updatePlayerPosition()
     {
         let playerY = this.road.getRoadY(this.player.x + this.player.playerOffsetX);
@@ -197,7 +213,6 @@ class Game{
 
     updatePlayerRotation()
     {
-    
         let roadAngle = this.getRoadAngle();
         if(this.player.grounded){
             this.player.rotSpeed = 0.3;
@@ -205,12 +220,18 @@ class Game{
         }
     }
 
+    updateEnemyPosition(enemy)
+    {
+        let enemyY = this.road.getRoadY(enemy.x + enemy.playerOffsetX);
+        enemy.setPositionY(enemyY);
+    }
+
     getRoadAngle()
     {
         return this.road.getRoadAngle(
             this.player.x + this.player.playerOffsetX - this.player.width/3,
             this.player.x + this.player.playerOffsetX + this.player.width/3
-            );
+        );
     }
 
     inputs(){
