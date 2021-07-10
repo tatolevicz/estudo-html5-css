@@ -38,7 +38,7 @@ class Game{
         this.canvas.width = window.innerWidth * 0.8 < 1000 ? window.innerWidth * 0.8 : 1000;
         this.canvas.height = 500;
         this.gameSpeed = 0;
-        this.gameAcceleration = 0.01;
+        this.gameAcceleration = 0.03;
 
         this.inputHandler = new InputHandler();
 
@@ -146,22 +146,16 @@ class Game{
                 this.updatePlayerRotation();
                 break;
             case States.PLAYING: 
-                // this.sky.setSpeed(this.gameSpeed);
-                // this.road.setSpeed(this.gameSpeed);
-                this.player.setSpeed(this.gameSpeed);
                 //update the position and rotation of player
                 this.updatePlayerPosition();
                 this.updatePlayerRotation();
                 break;
             case States.FINISHING: 
+
                 this.player.playerOffsetX -= 5
                 this.player.rotation -= Math.PI * 0.2;
 
                 this.gameSpeed -= this.gameSpeed*this.gameAcceleration*3;
-
-                this.sky.setSpeed(this.gameSpeed);
-                this.road.setSpeed(this.gameSpeed);
-                this.player.setSpeed(this.gameSpeed);
 
                 this.updatePlayerPosition();
 
@@ -195,7 +189,7 @@ class Game{
     {
         let playerY = this.road.getRoadY(this.player.x + this.player.playerOffsetX);
         this.player.setPositionY(playerY);
-        this.road.currentX = this.player.x;
+        // this.road.currentX = this.player.x;
     }
 
 
@@ -221,23 +215,25 @@ class Game{
 
         let inputSpeed = (this.inputHandler.controls.ArrowUp - this.inputHandler.controls.ArrowDown);
 
-        let gravityAcelleration = (this.player.rotation/Math.PI/4) * 0.5;
+        let gravityAcelleration = (this.player.rotation/Math.PI/4) * 0.3;
 
         if(inputSpeed && this.player.grounded)
         {
-            this.gameSpeed += (this.inputHandler.controls.ArrowUp - this.inputHandler.controls.ArrowDown)*(this.gameAcceleration + gravityAcelleration);
-            if(this.gameSpeed < 0)
-                this.gameSpeed = 0;
+            this.gameSpeed += (this.inputHandler.controls.ArrowUp - this.inputHandler.controls.ArrowDown)*this.gameAcceleration + gravityAcelleration;
+            // if(this.gameSpeed < 0)
+            //     this.gameSpeed = 0;
         }
         else if(this.player.grounded)
         {
-            this.gameSpeed -=  this.gameSpeed*this.gameAcceleration - gravityAcelleration*0.5;
+            this.gameSpeed -=  this.gameSpeed*this.gameAcceleration + gravityAcelleration*0.5;
         }
 
         let rotDirection = (this.inputHandler.controls.ArrowLeft - this.inputHandler.controls.ArrowRight);
         
         this.player.rotSpeed = 0.1;
         this.player.rotate(rotDirection);
+
+        this.player.speed = this.gameSpeed;
     }
 
     isPlaying()
@@ -245,8 +241,6 @@ class Game{
         return this.states.getState() === States.PLAYING;
     }
 }
-
-
 
 var game = new Game();
 

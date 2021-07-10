@@ -41,7 +41,9 @@ class Player{
 
         ctx.save();
 
-        ctx.translate(this.playerOffsetX,this.y - this.height/2);
+        let x = this.x + this.playerOffsetX;
+
+        ctx.translate(x,this.y - this.height/2);
         ctx.rotate(this.rotation);
 
         ctx.translate(0,this.height/2);
@@ -76,14 +78,14 @@ class Player{
                 this.onGrounded();
         }
     
-        this.lastGroundedState  = this.grounded;
+        this.lastGroundedState = this.grounded;
 
         if(this.y < y)
         {
             this.speedY += this.gravity;
         }
         else{
-            this.speedY -= (this.y - y) * this.speed*this.gravity;
+            this.speedY -= (this.y - y) *this.gravity;
             this.y = y;
         }
         
