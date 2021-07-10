@@ -5,10 +5,16 @@ class States{
     }
 
     static NONE = 0;
-    static STARTING = 1;
-    static PLAYING = 2;
-    static FINISHING = 3;
-    static FINISHED = 4;
+
+    // static CREATING_LEVEL = 2;
+    // static CREATING_PLAYER = 3;
+
+    static STARTING = 4;
+    static PLAYING = 5;
+    static FINISHING = 6;
+    static FINISHED = 8;
+    static WATCHING = 9;
+
 
 
     getState(){

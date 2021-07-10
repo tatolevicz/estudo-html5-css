@@ -22,10 +22,12 @@ import { GameColors } from "./colors.js";
 import { States } from "./states.js";
 import { InputHandler } from "./input.js";
 
+let socket = io();
 
 class Game{
-    constructor() {
+    constructor(socket) {
 
+        this.socket = socket;
         this.startBtn = document.querySelector("#startGameBtn");
         this.uiContainer = document.querySelector("#container-ui");
 
@@ -41,57 +43,44 @@ class Game{
         this.gameAcceleration = 0.03;
         this.groundFriction = 0.01;
 
-
         this.inputHandler = new InputHandler();
-
-        // step 3 and 4
-        this.road = new Road(
-            this.canvas, 
-            0, 
-            this.canvas.width*1.1, 
-            this.canvas.height, 
-            this.canvas.height, 
-            500,
-            180, 
-            160, 
-            GameColors.hillsColor,
-            true,
-            false,
-            1.0);  
-            
-             // step 3 and 4
-        this.sky = new Road(
-            this.canvas, 
-            0, 
-            this.canvas.width*1.1, 
-            0, 
-            0, 
-            200,
-            30, 
-            300, 
-            GameColors.skyColor,
-            true,
-            true,
-            0.1);
-
-        let img = new Image();
-        img.src = './assets/images/player.png';
-
-        this.player = new Player(img,0.7, true);
-
-        this.player.playerOffsetX = this.canvas.width/4;
-
-        this.player.onGrounded = this.onPlayerGrounded.bind(this);
 
         window.onkeydown = ev => this.inputHandler.controls[ev.key] = 1;
         window.onkeyup = ev => this.inputHandler.controls[ev.key] = 0;
 
 
         this.startBtn.addEventListener("click",() => {
-            this.uiContainer.setAttribute("style","display: none !important");
+            this.hideUI();
+            this.addPlayer();
             this.states.setState(States.STARTING);
         });
+
+        //SOCKETS 
+        this.socket.on("prepare-game",(data) =>{
+            this.onPrepareGame(data);
+        });
+
+        this.socket.emit("request-game");
     }
+
+    createRoad(){
+        this.road = new Road(this.canvas, 0, this.canvas.width*1.1, this.canvas.height, this.canvas.height, 500,180, 160, GameColors.hillsColor,true,false,1.0);  
+    }
+
+    createSky(){
+        this.sky = new Road(this.canvas, 0, this.canvas.width*1.1, 0, 0, 200,30, 300, GameColors.skyColor,true,true,0.1);
+    }
+
+    addPlayer(){
+        this.player = new Player(0.7, true);
+        this.player.playerOffsetX = this.canvas.width/4;
+        this.player.onGrounded = this.onPlayerGrounded.bind(this);
+    }
+å
+    addEnemy(){
+
+    }
+
 
     onPlayerGrounded()
     {
@@ -107,7 +96,7 @@ class Game{
     }
 
     loop(){
-
+  
         if(this.isPlaying())
             this.inputs();
 
@@ -116,6 +105,7 @@ class Game{
 
         //update canva's game
         this.draw();
+        
     }
 
     draw(){
@@ -125,11 +115,15 @@ class Game{
         this.context.fillRect(0,0,this.canvas.width, this.canvas.height);
 
         //draw the sky to be the most far element in front the background
-        this.sky.draw();
+        if(this.sky)
+            this.sky.draw();
 
         //draw the road and player with any sequence cause they will not overlap each other
-        this.road.draw();
-        this.player.draw();
+        if(this.road)
+            this.road.draw();
+
+        if(this.player)
+            this.player.draw();
     }
 
     update(){
@@ -176,17 +170,15 @@ class Game{
                     this.states.setState(States.NONE);
                 break;
             case States.NONE: 
-                this.gameSpeed -= this.gameSpeed*this.gameAcceleration*3;
                 break
             default:
                 break;
         }
 
-        if(this.player.shouldStickWithCamera)
+        if(this.player && this.player.shouldStickWithCamera)
         {
             this.road.currentX = this.player.x;
             this.sky.currentX = this.player.x;
-
         }
 
     }
@@ -246,15 +238,35 @@ class Game{
         this.player.rotate(rotDirection);
 
         this.player.speed = this.gameSpeed;
+
+        // console.log(this.gameSpeed);
     }
 
     isPlaying()
     {
         return this.states.getState() === States.PLAYING;
     }
+
+    showUI(){
+        this.uiContainer.setAttribute("style","display: flex !important");
+    }
+
+    hideUI(){
+        this.uiContainer.setAttribute("style","display: none !important");
+    }
+
+    //SOCKET ENTRIES
+    onPrepareGame(data){
+        this.createRoad();
+        this.road.yValues = data.road;
+        this.createSky();
+        this.sky.yValues = data.sky;
+        this.showUI();
+    } 
+
 }
 
-var game = new Game();
+var game = new Game(socket);
 
 function mainLoop(){
     game.loop();

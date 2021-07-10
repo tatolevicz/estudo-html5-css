@@ -2,9 +2,8 @@
 class Player{
 
 
-    constructor(img, scale, stickWithCamera){
+    constructor(scale, stickWithCamera){
         
-        this.img = img;
         this.scale = scale;
         this.rotation = 0;
         this.rotSpeed = 0.0;
@@ -30,6 +29,7 @@ class Player{
         this.img.onload = () => {
             this.width = this.img.width*this.scale;
             this.height = this.img.height*this.scale;
+            this.y = -this.height;
         };
 
         this.img.src = './assets/images/player.png';
