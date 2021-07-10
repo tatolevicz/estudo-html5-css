@@ -2,7 +2,7 @@
 class Player{
 
 
-    constructor(img, scale){
+    constructor(img, scale, stickWithCamera){
         
         this.img = img;
         this.scale = scale;
@@ -23,6 +23,7 @@ class Player{
         this.lastGroundedState = false;
 
         this.onGrounded = undefined;
+        this.shouldStickWithCamera = stickWithCamera;
 
         this.img = new Image();
 
@@ -41,8 +42,7 @@ class Player{
 
         ctx.save();
 
-        let x = this.x + this.playerOffsetX;
-
+        let x = this.shouldStickWithCamera ? this.playerOffsetX : this.x + this.playerOffsetX 
         ctx.translate(x,this.y - this.height/2);
         ctx.rotate(this.rotation);
 
@@ -85,7 +85,7 @@ class Player{
             this.speedY += this.gravity;
         }
         else{
-            this.speedY -= (this.y - y) *this.gravity;
+            this.speedY -= (this.y - y) *this.gravity*Math.abs(this.speed);
             this.y = y;
         }
         

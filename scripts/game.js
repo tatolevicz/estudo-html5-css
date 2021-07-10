@@ -167,9 +167,10 @@ class Game{
             case States.FINISHED: 
                     this.gameSpeed = 0;
                     this.player.playerOffsetX = this.canvas.width/4;
+                    this.player.x = this.road.currentX;
                     this.uiContainer.setAttribute("style","display: flex !important");
                     this.player.rotation = 0;
-                    this.player.setPositionY(-this.player.height);
+                    this.player.y = -this.player.height;
                     this.states.setState(States.NONE);
                 break;
             case States.NONE: 
@@ -178,6 +179,9 @@ class Game{
             default:
                 break;
         }
+
+        // this.road.currentX = this.player.x;
+
     }
 
     checkGameOver()
@@ -189,7 +193,6 @@ class Game{
     {
         let playerY = this.road.getRoadY(this.player.x + this.player.playerOffsetX);
         this.player.setPositionY(playerY);
-        // this.road.currentX = this.player.x;
     }
 
 
