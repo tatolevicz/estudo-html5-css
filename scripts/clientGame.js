@@ -94,9 +94,19 @@ class ClientGame{
                 enemyData.angle,
                 enemyData.speed);
 
-            console.log(enemyData);
+            // console.log(enemyData);
         });
 
+         socket.on("client-update-player",(playerData) =>{              
+
+            this.updatePlayer( 
+                playerData.x,
+                playerData.y, 
+                playerData.angle,
+                playerData.speed);
+
+            console.log(playerData);
+        });
         // socket.on("client-init-game",() => {
         //     this.uiContainer.setAttribute("style","display: none !important");
         //     this.states.setState(States.STARTING);
@@ -229,18 +239,17 @@ class ClientGame{
                     this.states.setState(States.PLAYING)
                     break;
                 }
-        
                 //update the position and rotation of player
-                this.updatePlayerPosition();
                 this.updatePlayerRotation();
+                this.updatePlayerPosition();
                 break;
             case States.PLAYING: 
                 this.sky.setSpeed(this.gameSpeed);
                 this.road.setSpeed(this.gameSpeed);
                 this.player.setSpeed(this.gameSpeed);
                 //update the position and rotation of player
-                this.updatePlayerPosition();
                 this.updatePlayerRotation();
+                this.updatePlayerPosition();
                 break;
             case States.FINISHING: 
                 this.playerOffsetX -= 5
@@ -288,14 +297,13 @@ class ClientGame{
     {
         let playerX = this.playerOffsetX;
         let playerY = this.road.getRoadY(this.road.getRoadPosition(playerX));
-        this.player.setPosition(playerX,playerY);
-
+        // this.player.setPosition(playerX,playerY);
 
         this.socket.emit("player-input",
         {
             id: this.player.id, 
-            x: this.player.x,
-            y: this.player.y, 
+            x: playerX,
+            y: playerY, 
             angle:  this.player.rotation,
             speed: this.gameSpeed
         });
@@ -331,6 +339,17 @@ class ClientGame{
             }
         }
     }
+
+
+    updatePlayer(x,y,rad, speed)
+    {
+        this.player.setPosition(x,y);
+
+        this.player.rotSpeed = 0.3;
+        this.player.rotation = rad;
+        this.player.speed = speed;
+    }
+
 
     getRoadAngle(x)
     {

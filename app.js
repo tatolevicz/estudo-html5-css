@@ -54,7 +54,11 @@ io.on('connection', (socket) => {
     io.emit("client-create-enemy",socket.id);
 
     socket.on('player-input', (playerData) => {
+        
+        socket.emit("client-update-player",{x: playerData.x, y: playerData.y, angle: playerData.angle, speed: playerData.speed});
+
         socket.broadcast.emit("client-update-enemy",{id: socket.id, x: playerData.x, y: playerData.y, angle: playerData.angle, speed: playerData.speed});
+
     });
 
     //log the user id disconnecting
