@@ -30,6 +30,8 @@ class Road{
     }
 
     draw(){
+
+        let x = this.currentX*this.distanceParalaxe;
         //just to auto complete for now
         var canvas = document.querySelector("canvas");
         var ctx = canvas.getContext("2d");    
@@ -40,7 +42,7 @@ class Road{
         let i = 0;
         while(i < this.endX){
 
-            let y = this.getRoadY(this.currentX + i);
+            let y = this.getRoadY(x+ i);
             ctx.lineTo(i,y);
             i++;
         }
@@ -52,8 +54,7 @@ class Road{
         ctx.fillStyle = this.color;
         ctx.fill();
 
-        // this.pixelsToMove += this.speed*this.distanceParalaxe ;
-        this.pixelsToMove = this.currentX*this.distanceParalaxe ;
+        this.pixelsToMove = x;
     }
 
     // f should be a number between 0 - 1

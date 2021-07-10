@@ -72,7 +72,7 @@ class Game{
             GameColors.skyColor,
             true,
             true,
-            0.8);
+            0.1);
 
         let img = new Image();
         img.src = './assets/images/player.png';
@@ -183,7 +183,11 @@ class Game{
         }
 
         if(this.player.shouldStickWithCamera)
+        {
             this.road.currentX = this.player.x;
+            this.sky.currentX = this.player.x;
+
+        }
 
     }
 
@@ -226,8 +230,6 @@ class Game{
         if(inputSpeed && this.player.grounded)
         {
             this.gameSpeed += (this.inputHandler.controls.ArrowUp - this.inputHandler.controls.ArrowDown)*this.gameAcceleration + gravityAcelleration;
-            // if(this.gameSpeed < 0)
-            //     this.gameSpeed = 0;
         }
         else if(this.player.grounded)
         {
