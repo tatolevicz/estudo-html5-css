@@ -7,7 +7,7 @@
     "node": "16.x.x"
   },
   "scripts": {
-    "start": "node app,js",
+    "start": "node app.js",
     "deploy": "gcloud app deploy"
   },
   "license": "ISC",
