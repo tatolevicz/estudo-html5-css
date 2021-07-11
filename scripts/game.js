@@ -92,7 +92,29 @@ class Game{
 
             if(idx != -1)
                 this.enemys.splice(idx,1);
+        });
 
+        this.socket.on("update-player",(playerData) => {
+            this.player.x = playerData.posX;
+            this.player.setPositionY(playerData.posY);
+            this.player.playerOffsetX = playerData.offSetX;
+            this.player.rotation = playerData.rotation;
+            this.player.speed = playerData.speed;
+        });
+
+        this.socket.on("update-enemy",(playerData) => {
+            for (let index = 0; index < this.enemys.length; index++) {
+                const enemy = this.enemys[index];
+                if(enemy.id == playerData.id){
+                    enemy.x = playerData.posX;
+                    enemy.setPositionY(playerData.posY);
+                    enemy.playerOffsetX = playerData.offSetX;
+                    enemy.rotation = playerData.rotation;
+                    enemy.speed = playerData.speed;
+                    break;
+                    
+                }   
+            }
         });
     }
 
@@ -168,7 +190,6 @@ class Game{
             this.player.draw();
 
         this.enemys.forEach(enemy => {
-            this.updateEnemyPosition(enemy);
             enemy.draw();
         });
     }
@@ -185,13 +206,14 @@ class Game{
                 }
         
                 //update the position and rotation of player
-                this.updatePlayerPosition();
                 this.updatePlayerRotation();
+                this.updatePlayerPosition();
+                
                 break;
             case States.PLAYING: 
                 //update the position and rotation of player
-                this.updatePlayerPosition();
                 this.updatePlayerRotation();
+                this.updatePlayerPosition();
                 break;
             case States.FINISHING: 
 
@@ -233,7 +255,14 @@ class Game{
     updatePlayerPosition()
     {
         let playerY = this.road.getRoadY(this.player.x + this.player.playerOffsetX);
-        this.player.setPositionY(playerY);
+        this.socket.emit("update-player-data",{
+            id: this.player.id,
+            posX: this.player.x,
+            posY: playerY,
+            offSetX: this.player.playerOffsetX,
+            rotation: this.player.rotation,
+            speed: this.player.speed
+        });
     }
 
 
@@ -244,12 +273,6 @@ class Game{
             this.player.rotSpeed = 0.3;
             this.player.rotate(this.player.rotation + roadAngle);
         }
-    }
-
-    updateEnemyPosition(enemy)
-    {
-        let enemyY = this.road.getRoadY(enemy.x + enemy.playerOffsetX);
-        enemy.setPositionY(enemyY);
     }
 
     getRoadAngle()

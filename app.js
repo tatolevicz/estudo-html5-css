@@ -77,17 +77,32 @@ io.on("connection", (socket) => {
             });
         });
 
-
         //now add it to the players array
         players.push(socket);
     });
 
 
 
-    // socket.on("update-player", () =>{
-    //     //send the noise values and create a player
-    //     io.emit("prepare-game",{road: roadNoise.getValues(), sky: skyNoise.getValues()});
-    // });
+    socket.on("update-player-data", (playerData) =>{
+
+        // console.log(playerData);
+        socket.emit("update-player",{
+            posX: playerData.posX,
+            posY: playerData.posY,
+            offSetX: playerData.offSetX,
+            rotation: playerData.rotation,
+            speed: playerData.speed
+        });
+
+        socket.broadcast.emit("update-enemy",{
+                id: socket.id,
+                posX: playerData.posX,
+                posY: playerData.posY,
+                offSetX: playerData.offSetX,
+                rotation: playerData.rotation,
+                speed: playerData.speed
+        });
+    });
 
 
     socket.on("disconnect", () =>{
