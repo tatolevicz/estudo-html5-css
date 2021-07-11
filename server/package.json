@@ -1,21 +1,16 @@
 {
-  "name": "estudo-html5-css",
+  "name": "bikehills-game-server",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "author": "Tato Levicz",
+  "engines": {
+    "node": "16.x.x"
+  },
   "scripts": {
-    "start": "node app,js"
-    },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tatolevicz/estudo-html5-css.git"
+    "start": "node app,js",
+    "deploy": "gcloud app deploy"
   },
-  "author": "Arthur Motelevicz",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/tatolevicz/estudo-html5-css/issues"
-  },
-  "homepage": "https://github.com/tatolevicz/estudo-html5-css#readme",
   "dependencies": {
     "express": "^4.17.1",
     "socket.io": "^4.1.3"

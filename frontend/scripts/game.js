@@ -22,7 +22,8 @@ import { GameColors } from "./colors.js";
 import { States } from "./states.js";
 import { InputHandler } from "./input.js";
 
-let socket = io("http://localhost:3000");
+// let socket = io("https://bikehillsserver.rj.r.appspot.com");
+let socket = io("http://localhost:8080");
 
 class Game{
     constructor(socket) {

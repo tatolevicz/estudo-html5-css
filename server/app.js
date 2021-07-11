@@ -14,7 +14,7 @@ const io = new Server(server, {
 
 app.get("/",(req,res) => {
     // res.sendFile(__dirname + "/index.html");
-    res.send("Hello frinend!")
+    res.send("This app is a server for the Bike Hills game available here: \n https://tatolevicz.github.io/")
 });
 
 // Listen to the App Engine-specified port, or 8080 otherwise
@@ -121,5 +121,4 @@ io.on("connection", (socket) => {
 
     console.log("Users: conneted: " + users.length);
     console.log("Players playing: " + players.length);
-
 });
