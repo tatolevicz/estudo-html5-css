@@ -17,8 +17,10 @@ app.get("/",(req,res) => {
     res.send("Hello frinend!")
 });
 
-server.listen(8080,() =>{
-    console.log("server running!");
+// Listen to the App Engine-specified port, or 8080 otherwise
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
 });
 
 app.use(express.static(__dirname + "/"));
