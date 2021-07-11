@@ -106,11 +106,11 @@ class Game{
             for (let index = 0; index < this.enemys.length; index++) {
                 const enemy = this.enemys[index];
                 if(enemy.id == playerData.id){
-                    enemy.x = playerData.posX;
-                    enemy.setPositionY(playerData.posY);
+                    enemy.x = playerData.posX - this.player.x;
                     enemy.playerOffsetX = playerData.offSetX;
+                    enemy.setPositionY(playerData.posY);
                     enemy.rotation = playerData.rotation;
-                    enemy.speed = playerData.speed;
+                    enemy.speed = 0;
                     break;
                     
                 }   
@@ -186,12 +186,13 @@ class Game{
         if(this.road)
             this.road.draw();
 
-        if(this.player)
-            this.player.draw();
-
         this.enemys.forEach(enemy => {
             enemy.draw();
         });
+
+        if(this.player)
+            this.player.draw();
+
     }
 
     update(){

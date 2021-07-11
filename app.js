@@ -96,9 +96,9 @@ io.on("connection", (socket) => {
 
         socket.broadcast.emit("update-enemy",{
                 id: socket.id,
-                posX: playerData.posX,
+                posX: playerData.posX + playerData.offSetX,
                 posY: playerData.posY,
-                offSetX: playerData.offSetX,
+                offSetX: 0,
                 rotation: playerData.rotation,
                 speed: playerData.speed
         });
