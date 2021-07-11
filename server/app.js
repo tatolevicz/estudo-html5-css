@@ -4,12 +4,19 @@ const http = require("http");
 const server = http.createServer(app);
 const {Server} = require("socket.io");
 
-const {Noise} = require("./scripts/server/noise.js")
+const {Noise} = require("./noise.js")
 
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    // methods: ["GET", "POST"]
+  }
+});
+
+
 
 app.get("/",(req,res) => {
-    res.sendFile(__dirname + "/index.html");
+    // res.sendFile(__dirname + "/index.html");
 });
 
 server.listen(3000,() =>{

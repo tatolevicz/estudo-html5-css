@@ -22,7 +22,7 @@ import { GameColors } from "./colors.js";
 import { States } from "./states.js";
 import { InputHandler } from "./input.js";
 
-let socket = io();
+let socket = io("http://localhost:3000");
 
 class Game{
     constructor(socket) {
