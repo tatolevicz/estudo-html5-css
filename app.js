@@ -36,7 +36,7 @@ io.on("connection", (socket) => {
     if it's the first player on the game populate the noise
     populate the values for road and sky
     */
-    if(players.length === 0){   
+    if(users.length === 1){   
         roadNoise.populate();
         skyNoise.populate();
     }
@@ -54,17 +54,29 @@ io.on("connection", (socket) => {
         socket.emit("create-player",socket.id);
     });
 
-    socket.on("player-created",() =>{
-
+    socket.on("player-created",(playerData) =>{
         //tell to the other player already in the game create a enemy now
         players.forEach(p => {
-            p.emit("create-enemy",socket.id);
+            p.emit("create-enemy",{
+                id: socket.id,
+                posX: playerData.posX,
+                posY: playerData.posY,
+                offSetX: playerData.offSetX
+            });
         });
         
+
         //tell to this player create all the other enemys already here
         players.forEach(p => {
-            socket.emit("create-enemy",p.id);
+            //FIX with last player position if needed
+            socket.emit("create-enemy",{
+                id: p.id,
+                posX: playerData.posX,
+                posY: playerData.posY,
+                offSetX: playerData.offSetX
+            });
         });
+
 
         //now add it to the players array
         players.push(socket);
@@ -82,6 +94,7 @@ io.on("connection", (socket) => {
         console.log("User disconneted: " + socket.id);
         users.splice(users.indexOf(socket),1);
         players.splice(players.indexOf(socket),1);
+        socket.broadcast.emit("delete-enemy",socket.id);
     });
 
     console.log("Users: conneted: " + users.length);

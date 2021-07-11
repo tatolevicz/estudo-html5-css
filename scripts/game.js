@@ -65,12 +65,34 @@ class Game{
         this.socket.on("create-player",(id) =>{
             this.addPlayer();
             this.player.id = id;
-            socket.emit("player-created");
+
+            socket.emit("player-created",{
+                posX: this.player.x, 
+                posY: this.player.y, 
+                offSetX: this.player.playerOffsetX
+            });
+
             this.states.setState(States.STARTING);
         });
 
-        this.socket.on("create-enemy",(id) =>{
-            this.addEnemy(id);
+        this.socket.on("create-enemy",(data) =>{
+            this.addEnemy(data);
+        });
+
+        this.socket.on("delete-enemy",(id) => {
+
+            let idx = -1;
+            for (let index = 0; index <  this.enemys.length; index++) {
+                const enemy = this.enemys[index];
+                if(enemy.id == id) {
+                    idx = index;
+                    break;
+                }
+            }
+
+            if(idx != -1)
+                this.enemys.splice(idx,1);
+
         });
     }
 
@@ -88,14 +110,18 @@ class Game{
         this.player.onGrounded = this.onPlayerGrounded.bind(this);
     }
 
-    addEnemy(id){
-        
-        if(this.player.id === id) return;
+    addEnemy(data){
+
+        if(this.player.id === data.id) return;
 
         let enemy = new Player(0.7, false);
-        enemy.playerOffsetX = this.canvas.width/4;
-        enemy.id = id;
+        enemy.id = data.id;
+        enemy.playerOffsetX = data.offSetX;
+        enemy.x = data.posX;
+        enemy.y = data.posY;
+        enemy.setPositionY(enemy.y);
         this.enemys.push(enemy);
+
         console.log("Enemy added!");
     }
 
