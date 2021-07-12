@@ -42,7 +42,6 @@ class Game{
         //step 2
         this.canvas.width = window.innerWidth * 0.8 < 1000 ? window.innerWidth * 0.8 : 1000;
         this.canvas.height = 500;
-        this.gameSpeed = 0;
         this.gameAcceleration = 0.03;
         this.groundFriction = 0.01;
 
@@ -107,8 +106,7 @@ class Game{
             this.controlRotation = playerData.control;
         });
 
-
-        this.socket.on("update-enemy",(playerData) => {
+        this.socket.on("update-enemy-speed",(playerData) => {
             for (let index = 0; index < this.enemys.length; index++) {
                 const enemy = this.enemys[index];
                 if(enemy.id == playerData.id){
@@ -118,10 +116,28 @@ class Game{
                     enemy.rotation = playerData.rotation;
                     enemy.speed = 0;
                     break;
-                    
                 }   
             }
         });
+
+        this.socket.on("update-enemy-rotation",(playerData) => {
+            this.controlRotation = playerData.control;
+        });
+
+
+        // this.socket.on("update-enemy",(playerData) => {
+        //     for (let index = 0; index < this.enemys.length; index++) {
+        //         const enemy = this.enemys[index];
+        //         if(enemy.id == playerData.id){
+        //             enemy.x = playerData.posX - this.player.x;
+        //             enemy.playerOffsetX = playerData.offSetX;
+        //             enemy.setPositionY(playerData.posY);
+        //             enemy.rotation = playerData.rotation;
+        //             enemy.speed = 0;
+        //             break;
+        //         }   
+        //     }
+        // });
     }
 
     createRoad(){
@@ -227,17 +243,17 @@ class Game{
                 this.player.playerOffsetX -= 5
                 this.player.rotation -= Math.PI * 0.2;
 
-                this.gameSpeed -= this.gameSpeed*this.gameAcceleration*3;
+                this.player.speed -= this.player.speed*this.gameAcceleration*3;
 
                 this.updatePlayerPosition();
 
-                if(this.gameSpeed <= 0.05){
+                if(this.player.speed <= 0.05){
                     this.states.setState(States.FINISHED);
                 }
 
                 break;
             case States.FINISHED: 
-                    this.gameSpeed = 0;
+                    this.player.speed = 0;
                     this.player.playerOffsetX = this.canvas.width/4;
                     this.player.x = this.road.currentX;
                     this.uiContainer.setAttribute("style","display: flex !important");
@@ -261,6 +277,20 @@ class Game{
 
     updatePlayerPosition()
     {
+        this.gravityAcelleration = (this.player.rotation/Math.PI/4) * 0.3;
+
+        if(this.controlSpeed && this.player.grounded){
+            this.player.speed += this.controlSpeed*this.gameAcceleration + this.gravityAcelleration;
+        }
+        else if(this.player.grounded)
+        {
+            if(this.gravityAcelleration < 0)
+                this.player.speed -=  this.player.speed*this.groundFriction - this.gravityAcelleration*0.5;
+            else
+                this.player.speed +=  this.player.speed*(-this.groundFriction) + this.gravityAcelleration*0.5;
+
+        }
+
         let playerY = this.road.getRoadY(this.player.x + this.player.playerOffsetX);
         this.player.setPositionY(playerY);
     }
@@ -268,6 +298,11 @@ class Game{
 
     updatePlayerRotation()
     {
+        if(this.controlRotation){
+            this.player.rotSpeed = 0.1;
+            this.player.rotate(this.controlRotation);
+        }
+
         let roadAngle = this.getRoadAngle();
         if(this.player.grounded){
             this.player.rotSpeed = 0.3;
@@ -284,29 +319,13 @@ class Game{
     }
 
     inputs(){
-
         let inputSpeed = (this.inputHandler.controls.ArrowUp - this.inputHandler.controls.ArrowDown);
-
-        this.gravityAcelleration = (this.player.rotation/Math.PI/4) * 0.3;
-
         if(inputSpeed != this.controlSpeed)
         {
             this.socket.emit("update-player-speed",{
                 id: this.player.id,
                 control: inputSpeed
             });
-        }
-
-        if(this.controlSpeed && this.player.grounded){
-            this.gameSpeed += this.controlSpeed*this.gameAcceleration + this.gravityAcelleration;
-        }
-        else if(this.player.grounded)
-        {
-            if(this.gravityAcelleration < 0)
-                this.gameSpeed -=  this.gameSpeed*this.groundFriction - this.gravityAcelleration*0.5;
-            else
-                this.gameSpeed +=  this.gameSpeed*(-this.groundFriction) + this.gravityAcelleration*0.5;
-
         }
 
         let rotDirection = (this.inputHandler.controls.ArrowLeft - this.inputHandler.controls.ArrowRight);
@@ -318,13 +337,6 @@ class Game{
                 control: rotDirection
             });
         }
-
-        if(this.controlRotation){
-            this.player.rotSpeed = 0.1;
-            this.player.rotate(this.controlRotation);
-        }
-
-        this.player.speed = this.gameSpeed;
     }
 
     isPlaying()

@@ -99,11 +99,7 @@ io.on("connection", (socket) => {
 
         // socket.broadcast.emit("update-enemy-speed",{
         //         id: socket.id,
-        //         posX: playerData.posX + playerData.offSetX,
-        //         posY: playerData.posY,
-        //         offSetX: 0,
-        //         rotation: playerData.rotation,
-        //         speed: playerData.speed
+        //         control: playerData.control
         // });
     });
 
@@ -114,13 +110,9 @@ io.on("connection", (socket) => {
             control: playerData.control
         });
 
-        // socket.broadcast.emit("update-enemy",{
+        // socket.broadcast.emit("update-enemy-rotation",{
         //         id: socket.id,
-        //         posX: playerData.posX + playerData.offSetX,
-        //         posY: playerData.posY,
-        //         offSetX: 0,
-        //         rotation: playerData.rotation,
-        //         speed: playerData.speed
+        //         control: playerData.control
         // });
     });
 
