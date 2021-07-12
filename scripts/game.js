@@ -24,7 +24,7 @@ import { InputHandler } from "./input.js";
 
 
 // COMPUTE ENGINE - GCE
-let socket = io("https://35.199.124.252:8080"); 
+let socket = io("http://35.199.124.252:8080"); 
 
 //APP Engine - GAE
 // let socket = io("https://tato-game-servers.rj.r.appspot.com/"); 
