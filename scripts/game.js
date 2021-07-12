@@ -22,8 +22,8 @@ import { GameColors } from "./colors.js";
 import { States } from "./states.js";
 import { InputHandler } from "./input.js";
 
-let socket = io("https://tato-game-servers.rj.r.appspot.com/");
-// let socket = io("http://localhost:8080");
+// let socket = io("https://tato-game-servers.rj.r.appspot.com/");
+let socket = io("http://localhost:8080");
 
 class Game{
     constructor(socket) {
@@ -32,6 +32,7 @@ class Game{
         this.startBtn = document.querySelector("#startGameBtn");
         this.uiContainer = document.querySelector("#container-ui");
         this.enemys = [];
+        this.gravityAcelleration = 0;
 
         this.states = new States();
         // step 1
@@ -44,6 +45,9 @@ class Game{
         this.gameSpeed = 0;
         this.gameAcceleration = 0.03;
         this.groundFriction = 0.01;
+
+        this.controlSpeed = 0;
+        this.controlRotation = 0;
 
         this.inputHandler = new InputHandler();
 
@@ -95,13 +99,14 @@ class Game{
                 this.enemys.splice(idx,1);
         });
 
-        this.socket.on("update-player",(playerData) => {
-            this.player.x = playerData.posX;
-            this.player.setPositionY(playerData.posY);
-            this.player.playerOffsetX = playerData.offSetX;
-            this.player.rotation = playerData.rotation;
-            this.player.speed = playerData.speed;
+        this.socket.on("update-player-speed",(playerData) => {
+            this.controlSpeed = playerData.control;
         });
+
+        this.socket.on("update-player-rotation",(playerData) => {
+            this.controlRotation = playerData.control;
+        });
+
 
         this.socket.on("update-enemy",(playerData) => {
             for (let index = 0; index < this.enemys.length; index++) {
@@ -257,14 +262,7 @@ class Game{
     updatePlayerPosition()
     {
         let playerY = this.road.getRoadY(this.player.x + this.player.playerOffsetX);
-        this.socket.emit("update-player-data",{
-            id: this.player.id,
-            posX: this.player.x,
-            posY: playerY,
-            offSetX: this.player.playerOffsetX,
-            rotation: this.player.rotation,
-            speed: this.player.speed
-        });
+        this.player.setPositionY(playerY);
     }
 
 
@@ -289,29 +287,44 @@ class Game{
 
         let inputSpeed = (this.inputHandler.controls.ArrowUp - this.inputHandler.controls.ArrowDown);
 
-        let gravityAcelleration = (this.player.rotation/Math.PI/4) * 0.3;
+        this.gravityAcelleration = (this.player.rotation/Math.PI/4) * 0.3;
 
-        if(inputSpeed && this.player.grounded)
+        if(inputSpeed != this.controlSpeed)
         {
-            this.gameSpeed += (this.inputHandler.controls.ArrowUp - this.inputHandler.controls.ArrowDown)*this.gameAcceleration + gravityAcelleration;
+            this.socket.emit("update-player-speed",{
+                id: this.player.id,
+                control: inputSpeed
+            });
+        }
+
+        if(this.controlSpeed && this.player.grounded){
+            this.gameSpeed += this.controlSpeed*this.gameAcceleration + this.gravityAcelleration;
         }
         else if(this.player.grounded)
         {
-            if(gravityAcelleration < 0)
-                this.gameSpeed -=  this.gameSpeed*this.groundFriction - gravityAcelleration*0.5;
+            if(this.gravityAcelleration < 0)
+                this.gameSpeed -=  this.gameSpeed*this.groundFriction - this.gravityAcelleration*0.5;
             else
-                this.gameSpeed +=  this.gameSpeed*(-this.groundFriction) + gravityAcelleration*0.5;
+                this.gameSpeed +=  this.gameSpeed*(-this.groundFriction) + this.gravityAcelleration*0.5;
 
         }
 
         let rotDirection = (this.inputHandler.controls.ArrowLeft - this.inputHandler.controls.ArrowRight);
-        
-        this.player.rotSpeed = 0.1;
-        this.player.rotate(rotDirection);
+
+        if(rotDirection != this.controlRotation)
+        {
+            this.socket.emit("update-player-rotation",{
+                id: this.player.id,
+                control: rotDirection
+            });
+        }
+
+        if(this.controlRotation){
+            this.player.rotSpeed = 0.1;
+            this.player.rotate(this.controlRotation);
+        }
 
         this.player.speed = this.gameSpeed;
-
-        // console.log(this.gameSpeed);
     }
 
     isPlaying()

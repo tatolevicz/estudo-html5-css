@@ -90,26 +90,40 @@ io.on("connection", (socket) => {
 
 
 
-    socket.on("update-player-data", (playerData) =>{
+    socket.on("update-player-speed", (playerData) =>{
 
         // console.log(playerData);
-        socket.emit("update-player",{
-            posX: playerData.posX,
-            posY: playerData.posY,
-            offSetX: playerData.offSetX,
-            rotation: playerData.rotation,
-            speed: playerData.speed
+        socket.emit("update-player-speed",{
+            control: playerData.control,
         });
 
-        socket.broadcast.emit("update-enemy",{
-                id: socket.id,
-                posX: playerData.posX + playerData.offSetX,
-                posY: playerData.posY,
-                offSetX: 0,
-                rotation: playerData.rotation,
-                speed: playerData.speed
-        });
+        // socket.broadcast.emit("update-enemy-speed",{
+        //         id: socket.id,
+        //         posX: playerData.posX + playerData.offSetX,
+        //         posY: playerData.posY,
+        //         offSetX: 0,
+        //         rotation: playerData.rotation,
+        //         speed: playerData.speed
+        // });
     });
+
+      socket.on("update-player-rotation", (playerData) =>{
+
+        // console.log(playerData);
+        socket.emit("update-player-rotation",{
+            control: playerData.control
+        });
+
+        // socket.broadcast.emit("update-enemy",{
+        //         id: socket.id,
+        //         posX: playerData.posX + playerData.offSetX,
+        //         posY: playerData.posY,
+        //         offSetX: 0,
+        //         rotation: playerData.rotation,
+        //         speed: playerData.speed
+        // });
+    });
+
 
 
     socket.on("disconnect", () =>{
