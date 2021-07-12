@@ -30,8 +30,18 @@ app.use(express.static(__dirname + "/"));
 let roadNoise = new Noise(500,180);
 let skyNoise = new Noise(200,300);
 
+class Player{
+    constructor(socket,worldPosX,posY,rotation){
+        this.socket = socket;
+        this.worldPosX = worldPosX;
+        this.posY = posY;   
+        this.rotation = rotation;
+    }
+}
+
 let users = [];
 let players = [];
+
 
 //handle here all the multiplayer stuff
 io.on("connection", (socket) => {
@@ -64,11 +74,11 @@ io.on("connection", (socket) => {
     socket.on("player-created",(playerData) =>{
         //tell to the other player already in the game create a enemy now
         players.forEach(p => {
-            p.emit("create-enemy",{
+            p.socket.emit("create-enemy",{
                 id: socket.id,
-                posX: playerData.posX,
+                worldPosX: playerData.worldPosX,
                 posY: playerData.posY,
-                offSetX: playerData.offSetX
+                rotation: playerData.rotation
             });
         });
         
@@ -77,15 +87,16 @@ io.on("connection", (socket) => {
         players.forEach(p => {
             //FIX with last player position if needed
             socket.emit("create-enemy",{
-                id: p.id,
-                posX: playerData.posX,
-                posY: playerData.posY,
-                offSetX: playerData.offSetX
+                id: p.socket.id,
+                worldPosX: p.worldPosX,
+                posY: p.posY,
+                rotation: p.rotation
             });
         });
 
         //now add it to the players array
-        players.push(socket);
+        let p = new Player(socket,playerData.worldPosX,playerData.posY,playerData.rotation)
+        players.push(p);
     });
 
 
@@ -116,15 +127,30 @@ io.on("connection", (socket) => {
         });
     });
 
-
+    // socket.on("player-die", () =>{
+    //     console.log("Player died: " + socket.id);
+    //     players.splice(players.indexOf(getPlayerFromSocket(socket)),1);
+    //     // socket.broadcast.emit("enemy-die",socket.id);
+    //     console.log("Players playing: " + players.length);
+    // });
 
     socket.on("disconnect", () =>{
         console.log("User disconneted: " + socket.id);
         users.splice(users.indexOf(socket),1);
-        players.splice(players.indexOf(socket),1);
+        players.splice(players.indexOf(getPlayerFromSocket(socket)),1);
         socket.broadcast.emit("delete-enemy",socket.id);
     });
 
     console.log("Users: conneted: " + users.length);
     console.log("Players playing: " + players.length);
 });
+
+function getPlayerFromSocket(socket)
+{
+    for (let index = 0; index < players.length; index++) {
+        const player = players[index];
+        if(players.socket === socket)
+            return player;
+    }        
+
+}

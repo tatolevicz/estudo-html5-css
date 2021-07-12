@@ -24,13 +24,13 @@ import { InputHandler } from "./input.js";
 
 
 // COMPUTE ENGINE - GCE
-let socket = io("http://35.199.124.252:8080"); 
+// let socket = io("http://35.199.124.252:8080"); 
 
 //APP Engine - GAE
 // let socket = io("https://tato-game-servers.rj.r.appspot.com/"); 
 
 // LOCAL HOST NODE
-// let socket = io("http://localhost:8080");
+let socket = io("http://localhost:8080");
 
 class Game{
     constructor(socket) {
@@ -73,9 +73,10 @@ class Game{
             this.player.id = id;
 
             socket.emit("player-created",{
-                posX: this.player.x, 
-                posY: this.player.y, 
-                offSetX: this.player.playerOffsetX
+                id: this.player.id, 
+                worldPosX: this.player.worldPositionX, 
+                posY: this.player.y,
+                rotation: this.player.rotation
             });
 
             this.states.setState(States.STARTING);
@@ -164,9 +165,9 @@ class Game{
 
         let enemy = new Player(0.7, false);
         enemy.id = data.id;
-        enemy.playerOffsetX = data.offSetX;
-        enemy.x = data.posX;
+        enemy.x = data.worldPosX;
         enemy.y = data.posY;
+        enemy.rotation = data.rotation;
         enemy.setPositionY(enemy.y);
         this.enemys.push(enemy);
 
@@ -340,7 +341,10 @@ class Game{
         {
             this.socket.emit("update-player-speed",{
                 id: this.player.id,
-                control: inputSpeed
+                control: inputSpeed,
+                worldPosX: this.player.x + this.player.playerOffsetX,
+                posY: this.player.y,
+                rotation: this.player.rotation
             });
         }
 
@@ -350,7 +354,10 @@ class Game{
         {
             this.socket.emit("update-player-rotation",{
                 id: this.player.id,
-                control: rotDirection
+                control: rotDirection,
+                worldPosX: this.player.x + this.player.playerOffsetX,
+                posY: this.player.y,
+                rotation: this.player.rotation
             });
         }
     }
