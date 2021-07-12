@@ -22,8 +22,8 @@ import { GameColors } from "./colors.js";
 import { States } from "./states.js";
 import { InputHandler } from "./input.js";
 
-// let socket = io("https://tato-game-servers.rj.r.appspot.com/");
-let socket = io("http://localhost:8080");
+let socket = io("https://tato-game-servers.rj.r.appspot.com/");
+// let socket = io("http://localhost:8080");
 
 class Game{
     constructor(socket) {
@@ -32,8 +32,6 @@ class Game{
         this.startBtn = document.querySelector("#startGameBtn");
         this.uiContainer = document.querySelector("#container-ui");
         this.enemys = [];
-        this.gravityAcelleration = 0;
-
         this.states = new States();
         // step 1
         this.canvas = document.querySelector("canvas");
@@ -44,9 +42,6 @@ class Game{
         this.canvas.height = 500;
         this.gameAcceleration = 0.03;
         this.groundFriction = 0.01;
-
-        this.controlSpeed = 0;
-        this.controlRotation = 0;
 
         this.inputHandler = new InputHandler();
 
@@ -99,29 +94,31 @@ class Game{
         });
 
         this.socket.on("update-player-speed",(playerData) => {
-            this.controlSpeed = playerData.control;
+            this.player.controlSpeed = playerData.control;
         });
 
         this.socket.on("update-player-rotation",(playerData) => {
-            this.controlRotation = playerData.control;
+            this.player.controlRotation = playerData.control;
         });
 
         this.socket.on("update-enemy-speed",(playerData) => {
             for (let index = 0; index < this.enemys.length; index++) {
                 const enemy = this.enemys[index];
                 if(enemy.id == playerData.id){
-                    enemy.x = playerData.posX - this.player.x;
-                    enemy.playerOffsetX = playerData.offSetX;
-                    enemy.setPositionY(playerData.posY);
-                    enemy.rotation = playerData.rotation;
-                    enemy.speed = 0;
+                    enemy.controlSpeed = playerData.control;
                     break;
                 }   
             }
         });
 
         this.socket.on("update-enemy-rotation",(playerData) => {
-            this.controlRotation = playerData.control;
+            for (let index = 0; index < this.enemys.length; index++) {
+                const enemy = this.enemys[index];
+                if(enemy.id == playerData.id){
+                    enemy.controlRotation = playerData.control;
+                    break;
+                }   
+            }
         });
 
 
@@ -169,10 +166,10 @@ class Game{
         console.log("Enemy added!");
     }
 
-    onPlayerGrounded()
+    onPlayerGrounded(player)
     {
-        let playerAngle = this.player.rotation;
-        let roadAngle = this.getRoadAngle();
+        let playerAngle = player.rotation;
+        let roadAngle = this.getRoadAngle(player);
 
         let angle = playerAngle + roadAngle;
 
@@ -229,14 +226,22 @@ class Game{
                 }
         
                 //update the position and rotation of player
-                this.updatePlayerRotation();
-                this.updatePlayerPosition();
-                
+                this.updatePlayerRotation(this.player);
+                this.updatePlayerPosition(this.player);
+
+                this.enemys.forEach(enemy => {
+                    this.updatePlayerRotation(enemy);
+                    this.updatePlayerPosition(enemy);
+                });    
                 break;
             case States.PLAYING: 
                 //update the position and rotation of player
-                this.updatePlayerRotation();
-                this.updatePlayerPosition();
+                this.updatePlayerRotation(this.player);
+                this.updatePlayerPosition(this.player);
+                this.enemys.forEach(enemy => {
+                    this.updatePlayerRotation(enemy);
+                    this.updatePlayerPosition(enemy);
+                });
                 break;
             case States.FINISHING: 
 
@@ -245,7 +250,7 @@ class Game{
 
                 this.player.speed -= this.player.speed*this.gameAcceleration*3;
 
-                this.updatePlayerPosition();
+                this.updatePlayerPosition(this.player);
 
                 if(this.player.speed <= 0.05){
                     this.states.setState(States.FINISHED);
@@ -275,52 +280,56 @@ class Game{
 
     }
 
-    updatePlayerPosition()
+    updatePlayerPosition(player)
     {
-        this.gravityAcelleration = (this.player.rotation/Math.PI/4) * 0.3;
+        let gravityAcelleration = (player.rotation/Math.PI/4) * 0.3;
 
-        if(this.controlSpeed && this.player.grounded){
-            this.player.speed += this.controlSpeed*this.gameAcceleration + this.gravityAcelleration;
+        if(player.controlSpeed && player.grounded){
+            player.speed += player.controlSpeed*this.gameAcceleration + gravityAcelleration;
         }
-        else if(this.player.grounded)
+        else if(player.grounded)
         {
-            if(this.gravityAcelleration < 0)
-                this.player.speed -=  this.player.speed*this.groundFriction - this.gravityAcelleration*0.5;
+            if(gravityAcelleration < 0)
+                player.speed -=  player.speed*this.groundFriction - gravityAcelleration*0.5;
             else
-                this.player.speed +=  this.player.speed*(-this.groundFriction) + this.gravityAcelleration*0.5;
+                player.speed +=  player.speed*(-this.groundFriction) + gravityAcelleration*0.5;
 
         }
 
-        let playerY = this.road.getRoadY(this.player.x + this.player.playerOffsetX);
-        this.player.setPositionY(playerY);
+        let playerY = this.road.getRoadY(player.x + player.playerOffsetX);
+        player.setPositionY(playerY);
+        if(player !== this.player)
+        {
+            player.worldPositionX = this.player.x;
+        }
     }
 
 
-    updatePlayerRotation()
+    updatePlayerRotation(player)
     {
-        if(this.controlRotation){
-            this.player.rotSpeed = 0.1;
-            this.player.rotate(this.controlRotation);
+        if(player.controlRotation){
+            player.rotSpeed = 0.1;
+            player.rotate(player.controlRotation);
         }
 
-        let roadAngle = this.getRoadAngle();
-        if(this.player.grounded){
-            this.player.rotSpeed = 0.3;
-            this.player.rotate(this.player.rotation + roadAngle);
+        let roadAngle = this.getRoadAngle(player);
+        if(player.grounded){
+            player.rotSpeed = 0.3;
+            player.rotate(player.rotation + roadAngle);
         }
     }
 
-    getRoadAngle()
+    getRoadAngle(player)
     {
         return this.road.getRoadAngle(
-            this.player.x + this.player.playerOffsetX - this.player.width/3,
-            this.player.x + this.player.playerOffsetX + this.player.width/3
+            player.x + player.playerOffsetX - player.width/3,
+            player.x + player.playerOffsetX + player.width/3
         );
     }
 
     inputs(){
         let inputSpeed = (this.inputHandler.controls.ArrowUp - this.inputHandler.controls.ArrowDown);
-        if(inputSpeed != this.controlSpeed)
+        if(inputSpeed != this.player.controlSpeed)
         {
             this.socket.emit("update-player-speed",{
                 id: this.player.id,
@@ -330,7 +339,7 @@ class Game{
 
         let rotDirection = (this.inputHandler.controls.ArrowLeft - this.inputHandler.controls.ArrowRight);
 
-        if(rotDirection != this.controlRotation)
+        if(rotDirection != this.player.controlRotation)
         {
             this.socket.emit("update-player-rotation",{
                 id: this.player.id,

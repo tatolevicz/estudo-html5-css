@@ -1,9 +1,13 @@
+import { States } from "./states.js";
 
 class Player{
-
-
     constructor(scale, stickWithCamera){
-        
+
+        this.controlSpeed = 0;
+        this.controlRotation = 0;
+        this.states = new States();
+        this.worldPositionX = 0;
+
         this.scale = scale;
         this.rotation = 0;
         this.rotSpeed = 0.0;
@@ -42,7 +46,7 @@ class Player{
 
         ctx.save();
 
-        let x = this.shouldStickWithCamera ? this.playerOffsetX : this.x + this.playerOffsetX 
+        let x = this.shouldStickWithCamera ? this.playerOffsetX : this.x + this.playerOffsetX - this.worldPositionX; 
         ctx.translate(x,this.y - this.height/2);
         ctx.rotate(this.rotation);
 
@@ -75,7 +79,7 @@ class Player{
         {
             // console.log("Grounded: " + this.grounded);
             if(this.grounded && this.onGrounded)
-                this.onGrounded();
+                this.onGrounded(this);
         }
     
         this.lastGroundedState = this.grounded;

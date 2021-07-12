@@ -97,23 +97,23 @@ io.on("connection", (socket) => {
             control: playerData.control,
         });
 
-        // socket.broadcast.emit("update-enemy-speed",{
-        //         id: socket.id,
-        //         control: playerData.control
-        // });
+        socket.broadcast.emit("update-enemy-speed",{
+                id: socket.id,
+                control: playerData.control
+        });
     });
 
-      socket.on("update-player-rotation", (playerData) =>{
+    socket.on("update-player-rotation", (playerData) =>{
 
         // console.log(playerData);
         socket.emit("update-player-rotation",{
             control: playerData.control
         });
 
-        // socket.broadcast.emit("update-enemy-rotation",{
-        //         id: socket.id,
-        //         control: playerData.control
-        // });
+        socket.broadcast.emit("update-enemy-rotation",{
+                id: socket.id,
+                control: playerData.control
+        });
     });
 
 
