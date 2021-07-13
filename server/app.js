@@ -149,7 +149,7 @@ function getPlayerFromSocket(socket)
 {
     for (let index = 0; index < players.length; index++) {
         const player = players[index];
-        if(players.socket === socket)
+        if(player.socket === socket)
             return player;
     }        
 
