@@ -90,6 +90,7 @@ io.on("connection", (socket) => {
         //now add it to the players array
         let p = new Player(socket);
 
+        console.log(playerData);
         p.id =  playerData.id;
         p.worldPositionX = playerData.x + playerData.playerOffsetX;
         p.rotation = playerData.rotation;
@@ -101,6 +102,7 @@ io.on("connection", (socket) => {
         p.playerOffsetX = playerData.playerOffsetX;
         p.grounded = playerData.grounded;
         p.lastGroundedState = playerData.lastGroundedState;
+        p.width = playerData.width;
 
         p.onGrounded = onPlayerGrounded;
 
@@ -127,7 +129,7 @@ io.on("connection", (socket) => {
     socket.on("update-player-rotation", (playerData) =>{
 
         let p = getPlayerFromSocket(socket);
-        p.controlSpeed = playerData.control;
+        p.controlRotation = playerData.control;
 
         // console.log(playerData);
         socket.emit("update-player-rotation",{
@@ -201,20 +203,14 @@ function updatePlayerRotation(player)
     }
 }
 
-function getRoadAngle(player)
-{
-    return road.getRoadAngle(
-        player.x + player.playerOffsetX - 30, //-30px
-        player.x + player.playerOffsetX + 30  //+30px
-    );
-}
-
 function onPlayerGrounded(player)
 {
     let playerAngle = player.rotation;
     let roadAngle = getRoadAngle(player);
 
     let angle = playerAngle + roadAngle;
+    console.log("Player grounded: ", player);
+
 
     if(angle > Math.PI / 2  || angle < -Math.PI/1.65)
     {
@@ -223,17 +219,25 @@ function onPlayerGrounded(player)
     }
 }
 
+function getRoadAngle(player)
+{
+    return road.getRoadAngle(
+        player.x + player.playerOffsetX - player.width/3,
+        player.x + player.playerOffsetX + player.width/3
+    );
+}
+
 // GAMELOOP ON SERVER
 // start the loop at 30 fps (1000/30ms per frame) and grab its id
 // let frameCount = 0;
-let deltaTime = 100; //ms
+let deltaTime = 1000/60; //ms
 const id = gameloop.setGameLoop(function(dt) {
     // console.log('Hi there! (frame=%s, delta=%s)', frameCount++, dt);
 
     players.forEach(p => {
         updatePlayerPosition(p);
         updatePlayerRotation(p);
-        console.log(p.x);
+        // console.log(p.speed);
     });
 
 }, deltaTime);

@@ -26,6 +26,8 @@ class Player{
         this.lastGroundedState = false;
 
         this.onGrounded = undefined;
+        this.onPlayerReady = undefined;
+
         this.shouldStickWithCamera = stickWithCamera;
 
         this.img = new Image();
@@ -34,6 +36,7 @@ class Player{
             this.width = this.img.width*this.scale;
             this.height = this.img.height*this.scale;
             this.y = -this.height;
+            this.onPlayerReady(this)
         };
 
         this.img.src = './assets/images/player.png';

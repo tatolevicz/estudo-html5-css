@@ -69,24 +69,7 @@ class Game{
         this.socket.emit("request-game");
 
         this.socket.on("create-player",(id) =>{
-            this.addPlayer();
-            this.player.id = id;
-
-            socket.emit("player-created",{
-                id: this.player.id,
-                worldPositionX: this.player.x + this.player.playerOffsetX,
-                rotation: this.player.rotation,
-                rotSpeed: this.player.rotSpeed,
-                speedY: this.player.speedY,
-                speed: this.player.speed,
-                x: this.player.x,
-                y: this.player.y,
-                playerOffsetX: this.player.playerOffsetX,
-                grounded: this.player.grounded,
-                lastGroundedState: this.player.lastGroundedState
-            });
-
-            this.states.setState(States.STARTING);
+            this.addPlayer(id);
         });
 
         this.socket.on("create-enemy",(data) =>{
@@ -135,21 +118,6 @@ class Game{
                 }   
             }
         });
-
-
-        // this.socket.on("update-enemy",(playerData) => {
-        //     for (let index = 0; index < this.enemys.length; index++) {
-        //         const enemy = this.enemys[index];
-        //         if(enemy.id == playerData.id){
-        //             enemy.x = playerData.posX - this.player.x;
-        //             enemy.playerOffsetX = playerData.offSetX;
-        //             enemy.setPositionY(playerData.posY);
-        //             enemy.rotation = playerData.rotation;
-        //             enemy.speed = 0;
-        //             break;
-        //         }   
-        //     }
-        // });
     }
 
     createRoad(){
@@ -160,10 +128,12 @@ class Game{
         this.sky = new Road(this.canvas, 0, this.canvas.width*1.1, 0, 0, 200,30, 300, GameColors.skyColor,true,true,0.1);
     }
 
-    addPlayer(){
+    addPlayer(id){
         this.player = new Player(0.7, true);
         this.player.playerOffsetX = this.canvas.width/4;
+        this.player.id = id;
         this.player.onGrounded = this.onPlayerGrounded.bind(this);
+        this.player.onPlayerReady = this.onPlayerReady.bind(this);
     }
 
     addEnemy(data){
@@ -187,11 +157,33 @@ class Game{
         let roadAngle = this.getRoadAngle(player);
 
         let angle = playerAngle + roadAngle;
+        console.log("Player client grounded: " + angle);
+
 
         if(angle > Math.PI / 2  || angle < -Math.PI/1.65)
         {
             this.states.setState(States.FINISHING);
         }
+    }
+    
+    onPlayerReady(player)
+    {
+        this.socket.emit("player-created",{
+            id: player.id,
+            worldPositionX: player.x + this.player.playerOffsetX,
+            rotation: player.rotation,
+            rotSpeed: player.rotSpeed,
+            speedY: player.speedY,
+            speed: player.speed,
+            x: player.x,
+            y: player.y,
+            playerOffsetX: player.playerOffsetX,
+            grounded: player.grounded,
+            lastGroundedState: player.lastGroundedState,
+            width: player.width
+        });
+
+        this.states.setState(States.STARTING);
     }
 
     loop(){

@@ -13,6 +13,7 @@ class Player{
         this.gravity = 0.2;
 
         this.speed = 0;
+        this.width = 0;
         
         this.x = 0;
         this.y = 0;
