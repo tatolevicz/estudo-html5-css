@@ -125,6 +125,7 @@ class Game{
                 this.player.y = playerData.y;
                 this.player.grounded = playerData.grounded;
                 this.player.lastGroundedState = playerData.lastGroundedState;
+                return;
             }
 
             let enemy = this.getEnemyById(playerData.id);
@@ -274,23 +275,23 @@ class Game{
                     break;
                 }
         
-                //update the position and rotation of player
-                this.updatePlayerRotation(this.player);
-                this.updatePlayerPosition(this.player);
+                // //update the position and rotation of player
+                // this.updatePlayerRotation(this.player);
+                // this.updatePlayerPosition(this.player);
 
-                this.enemys.forEach(enemy => {
-                    this.updatePlayerRotation(enemy);
-                    this.updatePlayerPosition(enemy);
-                });    
+                // this.enemys.forEach(enemy => {
+                //     this.updatePlayerRotation(enemy);
+                //     this.updatePlayerPosition(enemy);
+                // });    
                 break;
             case States.PLAYING: 
                 //update the position and rotation of player
-                this.updatePlayerRotation(this.player);
-                this.updatePlayerPosition(this.player);
-                this.enemys.forEach(enemy => {
-                    this.updatePlayerRotation(enemy);
-                    this.updatePlayerPosition(enemy);
-                });
+                // this.updatePlayerRotation(this.player);
+                // this.updatePlayerPosition(this.player);
+                // this.enemys.forEach(enemy => {
+                //     this.updatePlayerRotation(enemy);
+                //     this.updatePlayerPosition(enemy);
+                // });
                 break;
             case States.FINISHING: 
 
