@@ -6,7 +6,6 @@ class Player{
         this.controlSpeed = 0;
         this.controlRotation = 0;
         this.states = new States();
-        this.worldPositionX = 0;
 
         this.scale = scale;
         this.rotation = 0;
@@ -36,7 +35,8 @@ class Player{
             this.width = this.img.width*this.scale;
             this.height = this.img.height*this.scale;
             this.y = -this.height;
-            this.onPlayerReady(this)
+            if(this.onPlayerReady)
+                this.onPlayerReady(this)
         };
 
         this.img.src = './assets/images/player.png';
@@ -49,7 +49,7 @@ class Player{
 
         ctx.save();
 
-        let x = this.shouldStickWithCamera ? this.playerOffsetX : this.x + this.playerOffsetX - this.worldPositionX; 
+        let x = this.shouldStickWithCamera ? this.playerOffsetX : this.x + this.playerOffsetX; 
         ctx.translate(x,this.y - this.height/2);
         ctx.rotate(this.rotation);
 

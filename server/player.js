@@ -4,7 +4,6 @@ class Player{
         this.socket = socket;
         this.controlSpeed = 0;
         this.controlRotation = 0;
-        this.worldPositionX = 0;
 
         this.rotation = 0;
         this.rotSpeed = 0.0;

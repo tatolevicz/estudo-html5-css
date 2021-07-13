@@ -7,7 +7,7 @@ const {Server} = require("socket.io");
 const {Road} = require("./road.js")
 const {Player} = require("./player.js")
 
-const gameloop = require('node-gameloop');
+const loop = require('node-gameloop');
 
 class GameColors{
     static backgroundColor = "#1199FF";
@@ -65,34 +65,34 @@ io.on("connection", (socket) => {
     });
 
     socket.on("player-created",(playerData) =>{
+        
         //tell to the other player already in the game create a enemy now
         players.forEach(p => {
-            p.socket.emit("create-enemy",{
-                id: socket.id,
-                worldPosX: playerData.worldPosX,
-                posY: playerData.posY,
-                rotation: playerData.rotation
-            });
+            p.socket.emit("create-enemy",playerData);
         });
         
-
         //tell to this player create all the other enemys already here
         players.forEach(p => {
             //FIX with last player position if needed
             socket.emit("create-enemy",{
-                id: p.socket.id,
-                worldPosX: p.worldPosX,
-                posY: p.posY,
-                rotation: p.rotation
+            id: p.id,
+            rotation: p.rotation,
+            rotSpeed: p.rotSpeed,
+            speedY: p.speedY,
+            speed: p.speed,
+            x: p.x,
+            y: p.y,
+            playerOffsetX: p.playerOffsetX,
+            grounded: p.grounded,
+            lastGroundedState: p.lastGroundedState,
+            width: p.width
             });
         });
 
         //now add it to the players array
         let p = new Player(socket);
 
-        console.log(playerData);
         p.id =  playerData.id;
-        p.worldPositionX = playerData.x + playerData.playerOffsetX;
         p.rotation = playerData.rotation;
         p.rotSpeed = playerData.rotSpeed;
         p.speedY = playerData.speedY;
@@ -209,8 +209,6 @@ function onPlayerGrounded(player)
     let roadAngle = getRoadAngle(player);
 
     let angle = playerAngle + roadAngle;
-    console.log("Player grounded: ", player);
-
 
     if(angle > Math.PI / 2  || angle < -Math.PI/1.65)
     {
@@ -230,17 +228,33 @@ function getRoadAngle(player)
 // GAMELOOP ON SERVER
 // start the loop at 30 fps (1000/30ms per frame) and grab its id
 // let frameCount = 0;
-let deltaTime = 1000/60; //ms
-const id = gameloop.setGameLoop(function(dt) {
-    // console.log('Hi there! (frame=%s, delta=%s)', frameCount++, dt);
+let deltaTimeGame = 1000/60; // 16.666ms
+let deltaTimeSocket = 1000/20; //500 ms
 
+const gameLoopId = loop.setGameLoop(function(dt) {
+    // console.log('Hi there! (frame=%s, delta=%s)', frameCount++, dt);
     players.forEach(p => {
-        updatePlayerPosition(p);
         updatePlayerRotation(p);
-        // console.log(p.speed);
+        updatePlayerPosition(p);
     });
 
-}, deltaTime);
+}, deltaTimeGame);
+
+const socketLoopId = loop.setGameLoop(function(dt){
+   players.forEach(player => {
+        io.emit("fix-player-position",{
+            id: player.id,
+            rotation: player.rotation,
+            rotSpeed: player.rotSpeed,
+            speedY: player.speedY,
+            speed: player.speed,
+            x: player.x,
+            y: player.y,
+            grounded: player.grounded,
+            lastGroundedState: player.lastGroundedState
+        });
+    });
+},deltaTimeSocket);
 
 // stop the loop 2 seconds later
 // setTimeout(function() {

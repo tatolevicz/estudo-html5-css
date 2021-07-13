@@ -100,24 +100,56 @@ class Game{
         });
 
         this.socket.on("update-enemy-speed",(playerData) => {
-            for (let index = 0; index < this.enemys.length; index++) {
-                const enemy = this.enemys[index];
-                if(enemy.id == playerData.id){
-                    enemy.controlSpeed = playerData.control;
-                    break;
-                }   
+            let enemy = this.getEnemyById(playerData.id);
+            if(enemy){
+                enemy.controlSpeed = playerData.control;
             }
         });
 
         this.socket.on("update-enemy-rotation",(playerData) => {
-            for (let index = 0; index < this.enemys.length; index++) {
-                const enemy = this.enemys[index];
-                if(enemy.id == playerData.id){
-                    enemy.controlRotation = playerData.control;
-                    break;
-                }   
+            let enemy = this.getEnemyById(playerData.id);
+            if(enemy){
+                enemy.controlRotation = playerData.control;
             }
         });
+
+        socket.on("fix-player-position",(playerData)=>{
+
+            //  id: player.id,
+            if(this.player && this.player.id == playerData.id){
+                this.player.rotation =  playerData.rotation;
+                this.player.rotSpeed = playerData.rotSpeed;
+                this.player.speedY = playerData.speedY;
+                this.player.speed = playerData.speed;
+                this.player.x = playerData.x;
+                this.player.y = playerData.y;
+                this.player.grounded = playerData.grounded;
+                this.player.lastGroundedState = playerData.lastGroundedState;
+            }
+
+            let enemy = this.getEnemyById(playerData.id);
+            if(enemy){
+                enemy.rotation =  playerData.rotation;
+                enemy.rotSpeed = playerData.rotSpeed;
+                enemy.speedY = playerData.speedY;
+                enemy.speed = playerData.speed;
+                enemy.x = playerData.x - this.player.x;
+                enemy.y = playerData.y;
+                enemy.grounded = playerData.grounded;
+                enemy.lastGroundedState = playerData.lastGroundedState;
+            }
+        });
+    }
+
+    getEnemyById(id)
+    {
+        for (let index = 0; index < this.enemys.length; index++) {
+            const element = this.enemys[index];
+            if(this.enemys[index].id == id)
+                return this.enemys[index];
+        }
+
+        return null;
     }
 
     createRoad(){
@@ -137,17 +169,27 @@ class Game{
     }
 
     addEnemy(data){
-
         if(this.player.id === data.id) return;
 
         let enemy = new Player(0.7, false);
+
         enemy.id = data.id;
-        enemy.x = data.worldPosX;
-        enemy.y = data.posY;
         enemy.rotation = data.rotation;
-        enemy.setPositionY(enemy.y);
+        enemy.rotSpeed = data.rotSpeed;
+        enemy.speedY = data.speedY;
+        enemy.speed = data.speed;
+        enemy.x = data.x;
+        enemy.y = data.y;
+        enemy.playerOffsetX = data.playerOffsetX;
+        enemy.grounded = data.grounded;
+        enemy.lastGroundedState = data.lastGroundedState;
+
+        enemy.onGrounded = this.onPlayerGrounded.bind(this);
+
+        
         this.enemys.push(enemy);
 
+        
         console.log("Enemy added!");
     }
 
@@ -159,10 +201,11 @@ class Game{
         let angle = playerAngle + roadAngle;
         console.log("Player client grounded: " + angle);
 
-
-        if(angle > Math.PI / 2  || angle < -Math.PI/1.65)
-        {
-            this.states.setState(States.FINISHING);
+        if(player === this.player){
+            if(angle > Math.PI / 2  || angle < -Math.PI/1.65)
+            {
+                this.states.setState(States.FINISHING);
+            }
         }
     }
     
@@ -170,7 +213,6 @@ class Game{
     {
         this.socket.emit("player-created",{
             id: player.id,
-            worldPositionX: player.x + this.player.playerOffsetX,
             rotation: player.rotation,
             rotSpeed: player.rotSpeed,
             speedY: player.speedY,
@@ -285,6 +327,10 @@ class Game{
             this.sky.currentX = this.player.x;
         }
 
+        // if(this.player)
+        //     console.log(this.player.x);
+
+
     }
 
     updatePlayerPosition(player)
@@ -305,10 +351,6 @@ class Game{
 
         let playerY = this.road.getRoadY(player.x + player.playerOffsetX);
         player.setPositionY(playerY);
-        if(player !== this.player)
-        {
-            player.worldPositionX = this.player.x;
-        }
     }
 
 
