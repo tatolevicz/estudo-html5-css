@@ -73,10 +73,17 @@ class Game{
             this.player.id = id;
 
             socket.emit("player-created",{
-                id: this.player.id, 
-                worldPosX: this.player.worldPositionX, 
-                posY: this.player.y,
-                rotation: this.player.rotation
+                id: this.player.id,
+                worldPositionX: this.player.x + this.player.playerOffsetX,
+                rotation: this.player.rotation,
+                rotSpeed: this.player.rotSpeed,
+                speedY: this.player.speedY,
+                speed: this.player.speed,
+                x: this.player.x,
+                y: this.player.y,
+                playerOffsetX: this.player.playerOffsetX,
+                grounded: this.player.grounded,
+                lastGroundedState: this.player.lastGroundedState
             });
 
             this.states.setState(States.STARTING);

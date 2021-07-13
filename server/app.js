@@ -4,12 +4,24 @@ const http = require("http");
 const server = http.createServer(app);
 const {Server} = require("socket.io");
 
-const {Noise} = require("./noise.js")
+const {Road} = require("./road.js")
+const {Player} = require("./player.js")
+
+const gameloop = require('node-gameloop');
+
+class GameColors{
+    static backgroundColor = "#1199FF";
+    static skyColor = "#5AB8FF";
+    static hillsColor = "#000";
+}
+
+const gameAcceleration = 0.03;
+const groundFriction = 0.01;
 
 const io = new Server(server, {
-  cors: {
-    origin: "*",
-  }
+    cors: {
+        origin: "*",
+    }
 });
 
 app.get("/",(req,res) => {
@@ -27,17 +39,8 @@ app.use(express.static(__dirname + "/"));
 
 
 //game objects on the server side
-let roadNoise = new Noise(500,180);
-let skyNoise = new Noise(200,300);
-
-class Player{
-    constructor(socket,worldPosX,posY,rotation){
-        this.socket = socket;
-        this.worldPosX = worldPosX;
-        this.posY = posY;   
-        this.rotation = rotation;
-    }
-}
+let road = new Road(500,180,180,500);  
+let sky = new Road(200,30,300,500);  
 
 let users = [];
 let players = [];
@@ -49,25 +52,15 @@ io.on("connection", (socket) => {
     console.log("User conneted: " + socket.id);
     users.push(socket);
 
-    /*
-    if it's the first player on the game populate the noise
-    populate the values for road and sky
-    */
-    if(users.length === 1){   
-        roadNoise.populate();
-        skyNoise.populate();
-    }
-
     //game request by client
     socket.on("request-game", () =>{
         console.log("game requested");
         //send the noise values and create a player
-        socket.emit("prepare-game",{road: roadNoise.getValues(), sky: skyNoise.getValues()});
+        socket.emit("prepare-game",{road: road.noise.getValues(), sky: sky.noise.getValues()});
     });
 
     socket.on("game-started", () =>{
         console.log("game started");
-        //send the noise values and create a player
         socket.emit("create-player",socket.id);
     });
 
@@ -95,13 +88,30 @@ io.on("connection", (socket) => {
         });
 
         //now add it to the players array
-        let p = new Player(socket,playerData.worldPosX,playerData.posY,playerData.rotation)
+        let p = new Player(socket);
+
+        p.id =  playerData.id;
+        p.worldPositionX = playerData.x + playerData.playerOffsetX;
+        p.rotation = playerData.rotation;
+        p.rotSpeed = playerData.rotSpeed;
+        p.speedY = playerData.speedY;
+        p.speed = playerData.speed;
+        p.x = playerData.x;
+        p.y = playerData.y;
+        p.playerOffsetX = playerData.playerOffsetX;
+        p.grounded = playerData.grounded;
+        p.lastGroundedState = playerData.lastGroundedState;
+
+        p.onGrounded = onPlayerGrounded;
+
         players.push(p);
     });
 
 
-
     socket.on("update-player-speed", (playerData) =>{
+
+        let p = getPlayerFromSocket(socket);
+        p.controlSpeed = playerData.control;
 
         // console.log(playerData);
         socket.emit("update-player-speed",{
@@ -109,12 +119,15 @@ io.on("connection", (socket) => {
         });
 
         socket.broadcast.emit("update-enemy-speed",{
-                id: socket.id,
-                control: playerData.control
+            id: socket.id,
+            control: playerData.control
         });
     });
 
     socket.on("update-player-rotation", (playerData) =>{
+
+        let p = getPlayerFromSocket(socket);
+        p.controlSpeed = playerData.control;
 
         // console.log(playerData);
         socket.emit("update-player-rotation",{
@@ -122,8 +135,8 @@ io.on("connection", (socket) => {
         });
 
         socket.broadcast.emit("update-enemy-rotation",{
-                id: socket.id,
-                control: playerData.control
+            id: socket.id,
+            control: playerData.control
         });
     });
 
@@ -152,5 +165,81 @@ function getPlayerFromSocket(socket)
         if(player.socket === socket)
             return player;
     }        
-
 }
+
+function updatePlayerPosition(player)
+{
+    let gravityAcelleration = (player.rotation/Math.PI/4) * 0.3;
+
+    if(player.controlSpeed && player.grounded){
+        player.speed += player.controlSpeed*gameAcceleration + gravityAcelleration;
+    }
+    else if(player.grounded)
+    {
+        if(gravityAcelleration < 0)
+            player.speed -=  player.speed*groundFriction - gravityAcelleration*0.5;
+        else
+            player.speed +=  player.speed*(-groundFriction) + gravityAcelleration*0.5;
+
+    }
+
+    let playerY = road.getRoadY(player.x + player.playerOffsetX);
+    player.setPositionY(playerY);
+}
+
+function updatePlayerRotation(player)
+{
+    if(player.controlRotation){
+        player.rotSpeed = 0.1;
+        player.rotate(player.controlRotation);
+    }
+
+    let roadAngle = getRoadAngle(player);
+    if(player.grounded){
+        player.rotSpeed = 0.3;
+        player.rotate(player.rotation + roadAngle);
+    }
+}
+
+function getRoadAngle(player)
+{
+    return road.getRoadAngle(
+        player.x + player.playerOffsetX - 30, //-30px
+        player.x + player.playerOffsetX + 30  //+30px
+    );
+}
+
+function onPlayerGrounded(player)
+{
+    let playerAngle = player.rotation;
+    let roadAngle = getRoadAngle(player);
+
+    let angle = playerAngle + roadAngle;
+
+    if(angle > Math.PI / 2  || angle < -Math.PI/1.65)
+    {
+        //player should die here FINISHING state on client
+        console.log("Player died: " + player.id);
+    }
+}
+
+// GAMELOOP ON SERVER
+// start the loop at 30 fps (1000/30ms per frame) and grab its id
+// let frameCount = 0;
+let deltaTime = 100; //ms
+const id = gameloop.setGameLoop(function(dt) {
+    // console.log('Hi there! (frame=%s, delta=%s)', frameCount++, dt);
+
+    players.forEach(p => {
+        updatePlayerPosition(p);
+        updatePlayerRotation(p);
+        console.log(p.x);
+    });
+
+}, deltaTime);
+
+// stop the loop 2 seconds later
+// setTimeout(function() {
+//     console.log('2000ms passed, stopping the game loop');
+//     gameloop.clearGameLoop(id);
+// }, 2000);
