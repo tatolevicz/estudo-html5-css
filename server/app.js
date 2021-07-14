@@ -72,9 +72,13 @@ io.on("connection", (socket) => {
             p.socket.emit("create-enemy",playerData);
         });
     
+        let diedUser = getUserFromSocket(socket);
+        if(diedUser)
+            playerData.x = diedUser.diePosX;
+            
         socket.emit("restart-game",playerData);
 
-         //now add it again to the players array
+        //now add it again to the players array
         addPlayer(socket,playerData);
 
         console.log("Number of players active: " + players.length);

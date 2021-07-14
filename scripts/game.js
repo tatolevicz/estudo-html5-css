@@ -229,22 +229,6 @@ class Game{
         this.players.push(enemy);
         console.log("Enemy added!: " + enemy.x);
     }
-
-    // onPlayerGrounded(player)
-    // {
-    //     let playerAngle = player.rotation;
-    //     let roadAngle = this.getRoadAngle(player);
-
-    //     let angle = playerAngle + roadAngle;
-    //     console.log("Player client grounded: " + angle);
-
-    //     if(player === this.player){
-    //         if(angle > Math.PI / 2  || angle < -Math.PI/1.65)
-    //         {
-    //             this.states.setState(States.FINISHING);
-    //         }
-    //     }
-    // }
     
     onPlayerReady(player)
     {
@@ -299,12 +283,8 @@ class Game{
             this.road.draw();
 
         this.players.forEach(player => {
-            player.draw();
+                player.draw();
         });
-
-        // if(this.player)
-        //     this.player.draw();
-
     }
 
     update(player,dt){
@@ -362,74 +342,10 @@ class Game{
         }
     }
 
-    // update(dt){
-    //     //do the game logic
-    //     switch (this.states.getState()) {
-    //         case States.STARTING:
-
-    //             if(this.player.grounded) {
-    //                 this.states.setState(States.PLAYING)
-    //                 break;
-    //             }
-        
-    //             this.updateToNextFrame(this.player,dt);
-    //             this.enemys.forEach(enemy => {
-    //                 this.updateToNextFrame(enemy,dt);
-    //             }); 
-
-    //             break;
-    //         case States.PLAYING: 
-    //             this.updateToNextFrame(this.player,dt);
-    //             this.enemys.forEach(enemy => {
-    //                 this.updateToNextFrame(enemy,dt);
-    //             });
-
-    //             break;
-    //         case States.FINISHING: 
-
-    //             this.player.playerOffsetX -= 5
-    //             this.player.rotation -= Math.PI * 0.2;
-
-    //             this.player.speed -= this.player.speed*this.gameAcceleration*3;
-
-    //             this.updatePlayerPosition(this.player);
-
-    //             if(this.player.speed <= 0.05){
-    //                 this.states.setState(States.FINISHED);
-    //             }
-
-    //             break;
-    //         case States.FINISHED: 
-    //                 this.player.speed = 0;
-    //                 this.player.playerOffsetX = this.canvas.width/4;
-    //                 this.player.x = this.road.currentX;
-    //                 this.uiContainer.setAttribute("style","display: flex !important");
-    //                 this.player.rotation = 0;
-    //                 this.player.y = -this.player.height;
-    //                 this.states.setState(States.NONE);
-    //             break;
-    //         case States.NONE: 
-    //             this.enemys.forEach(enemy => {
-    //                 this.updateToNextFrame(enemy,dt);
-    //             });
-    //             break
-    //         default:
-    //             break;
-    //     }
-
-    //     if(this.player && this.player.shouldStickWithCamera)
-    //     {
-    //         this.road.currentX = this.player.x;
-    //         this.sky.currentX = this.player.x;
-    //     }
-    // }
-
     lerp(a,b,f)
     {
         return a + (b - a) * f;
     }
-
-
 
     updateToNextFrame(player,dt){
 
