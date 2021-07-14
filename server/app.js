@@ -112,18 +112,19 @@ io.on("connection", (socket) => {
 
     socket.on("update-player-speed", (playerData) =>{
 
+        
         let p = getPlayerFromSocket(socket);
 
-        if(p)
-            p.controlSpeed = playerData.control;
+        //sometimes the p is undefined I dont know why yet
+        if(p) p.controlSpeed = playerData.control;
     });
 
     socket.on("update-player-rotation", (playerData) =>{
 
         let p = getPlayerFromSocket(socket);
 
-        if(p)
-            p.controlRotation = playerData.control;
+        //sometimes the p is undefined I dont know why yet
+        if(p) p.controlRotation = playerData.control;
     });
 
     // socket.on("player-die", () =>{
