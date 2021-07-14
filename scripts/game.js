@@ -24,17 +24,30 @@ import { InputHandler } from "./input.js";
 
 
 // COMPUTE ENGINE - GCE
-let socket = io("http://35.199.124.252:8080"); 
+// let socket = io("http://35.199.124.252:8080"); 
 
 //APP Engine - GAE
 // let socket = io("https://tato-game-servers.rj.r.appspot.com/"); 
 
+class FrameInfo{
+    constructor(){
+        this.rotation =  0;
+        this.rotSpeed = 0;
+        this.speedY = 0;
+        this.speed = 0;
+        this.x = 0;
+        this.y = 0;
+    }
+}
+
+
 // LOCAL HOST NODE
-// let socket = io("http://localhost:8080");
+let socket = io("http://localhost:8080");
 
 class Game{
     constructor(socket) {
-
+        this.testNextFrame = new FrameInfo();
+        this.testInterpolationFrame = 0;
         this.socket = socket;
         this.startBtn = document.querySelector("#startGameBtn");
         this.uiContainer = document.querySelector("#container-ui");
@@ -117,14 +130,26 @@ class Game{
 
             //  id: player.id,
             if(this.player && this.player.id == playerData.id){
-                this.player.rotation =  playerData.rotation;
-                this.player.rotSpeed = playerData.rotSpeed;
-                this.player.speedY = playerData.speedY;
-                this.player.speed = playerData.speed;
-                this.player.x = playerData.x;
-                this.player.y = playerData.y;
-                this.player.grounded = playerData.grounded;
-                this.player.lastGroundedState = playerData.lastGroundedState;
+
+                // this.player.rotation =  playerData.rotation;
+                // this.player.rotSpeed = playerData.rotSpeed;
+                // this.player.speedY = playerData.speedY;
+                // this.player.speed = playerData.speed;
+                // this.player.x = playerData.x;
+                // this.player.y = playerData.y;
+                // this.player.grounded = playerData.grounded;
+
+                // this.player.lastGroundedState = playerData.lastGroundedState;
+
+                this.testNextFrame.rotation =  playerData.rotation;
+                this.testNextFrame.rotSpeed = playerData.rotSpeed;
+                this.testNextFrame.speedY = playerData.speedY;
+                this.testNextFrame.speed = playerData.speed;
+                this.testNextFrame.x = playerData.x;
+                this.testNextFrame.y = playerData.y;
+
+                this.testInterpolationFrame = 0;
+
                 return;
             }
 
@@ -275,6 +300,7 @@ class Game{
                     break;
                 }
         
+                this.updateToNextFrame();
                 // //update the position and rotation of player
                 // this.updatePlayerRotation(this.player);
                 // this.updatePlayerPosition(this.player);
@@ -285,6 +311,8 @@ class Game{
                 // });    
                 break;
             case States.PLAYING: 
+                this.updateToNextFrame();
+
                 //update the position and rotation of player
                 // this.updatePlayerRotation(this.player);
                 // this.updatePlayerPosition(this.player);
@@ -332,6 +360,31 @@ class Game{
         //     console.log(this.player.x);
 
 
+    }
+
+    lerp(a,b,f)
+    {
+        return a + (b - a) * f;
+    }
+
+
+    updateToNextFrame(){
+        if(this.testNextFrame)
+        {
+            this.testInterpolationFrame += 10;
+            let f = this.testInterpolationFrame/100;
+            if(f > 1) f = 1;
+
+            this.player.rotation =  this.lerp(this.player.rotation,this.testNextFrame.rotation,f);
+            this.player.rotSpeed =  this.lerp(this.player.rotSpeed,this.testNextFrame.rotSpeed,f);
+            this.player.speedY =    this.lerp(this.player.speedY,this.testNextFrame.speedY,f);
+            this.player.speed =     this.lerp(this.player.speed,this.testNextFrame.speed,f);
+            this.player.x =         this.lerp(this.player.x,this.testNextFrame.x,f);
+            this.player.y =         this.lerp(this.player.y,this.testNextFrame.y,f);
+
+            this.player.setPositionY(this.player.y);
+            
+        }
     }
 
     updatePlayerPosition(player)

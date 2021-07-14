@@ -228,14 +228,20 @@ function getRoadAngle(player)
 // GAMELOOP ON SERVER
 // start the loop at 30 fps (1000/30ms per frame) and grab its id
 // let frameCount = 0;
-let deltaTimeGame = 1000/120; // 16.666ms
-// let deltaTimeSocket = 1000/20; //500 ms
+let deltaTimeGame = 1000/100; // 16.666ms
+let deltaTimeSocket = 1000/10; //500 ms
 
 const gameLoopId = loop.setGameLoop(function(dt) {
     // console.log('Hi there! (frame=%s, delta=%s)', frameCount++, dt);
     players.forEach(player => {
         updatePlayerRotation(player);
         updatePlayerPosition(player);
+    });
+
+}, deltaTimeGame);
+
+const socketLoopId = loop.setGameLoop(function(dt){
+   players.forEach(player => {
         io.emit("fix-player-position",{
             id: player.id,
             rotation: player.rotation,
@@ -248,24 +254,7 @@ const gameLoopId = loop.setGameLoop(function(dt) {
             lastGroundedState: player.lastGroundedState
         });
     });
-
-}, deltaTimeGame);
-
-// const socketLoopId = loop.setGameLoop(function(dt){
-//    players.forEach(player => {
-//         io.emit("fix-player-position",{
-//             id: player.id,
-//             rotation: player.rotation,
-//             rotSpeed: player.rotSpeed,
-//             speedY: player.speedY,
-//             speed: player.speed,
-//             x: player.x,
-//             y: player.y,
-//             grounded: player.grounded,
-//             lastGroundedState: player.lastGroundedState
-//         });
-//     });
-// },deltaTimeSocket);
+},deltaTimeSocket);
 
 // stop the loop 2 seconds later
 // setTimeout(function() {
