@@ -14,12 +14,13 @@ class FrameInfo{
 
 class Player{
     constructor(scale, stickWithCamera){
+
         this.nextFrameInfo = new FrameInfo();
         this.frameInterp = 0;
 
         this.controlSpeed = 0;
         this.controlRotation = 0;
-        this.states = new States();
+        this.state = new States();
 
         this.scale = scale;
         this.rotation = 0;
@@ -128,6 +129,68 @@ class Player{
     isGrounded(){
         return this.grounded;
     }
+
+    // update(dt){
+    //     //do the game logic
+    //     switch (this.state.getState()) {
+    //         case States.STARTING:
+
+    //             if(this.grounded) {
+    //                 this.state.setState(States.PLAYING)
+    //                 break;
+    //             }
+        
+    //             this.updateToNextFrame(this.player,dt);
+    //             this.enemys.forEach(enemy => {
+    //                 this.updateToNextFrame(enemy,dt);
+    //             }); 
+
+    //             break;
+    //         case States.PLAYING: 
+    //             this.updateToNextFrame(this.player,dt);
+    //             this.enemys.forEach(enemy => {
+    //                 this.updateToNextFrame(enemy,dt);
+    //             });
+
+    //             break;
+    //         case States.FINISHING: 
+
+    //             this.player.playerOffsetX -= 5
+    //             this.player.rotation -= Math.PI * 0.2;
+
+    //             this.player.speed -= this.player.speed*this.gameAcceleration*3;
+
+    //             this.updatePlayerPosition(this.player);
+
+    //             if(this.player.speed <= 0.05){
+    //                 this.states.setState(States.FINISHED);
+    //             }
+
+    //             break;
+    //         case States.FINISHED: 
+    //                 this.player.speed = 0;
+    //                 this.player.playerOffsetX = this.canvas.width/4;
+    //                 this.player.x = this.road.currentX;
+    //                 this.uiContainer.setAttribute("style","display: flex !important");
+    //                 this.player.rotation = 0;
+    //                 this.player.y = -this.player.height;
+    //                 this.states.setState(States.NONE);
+    //             break;
+    //         case States.NONE: 
+    //             this.enemys.forEach(enemy => {
+    //                 this.updateToNextFrame(enemy,dt);
+    //             });
+    //             break
+    //         default:
+    //             break;
+    //     }
+
+        // if(this.player && this.player.shouldStickWithCamera)
+        // {
+        //     this.road.currentX = this.player.x;
+        //     this.sky.currentX = this.player.x;
+        // }
+    // }
 }
 
 export {Player, FrameInfo};

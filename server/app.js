@@ -59,9 +59,31 @@ io.on("connection", (socket) => {
         socket.emit("prepare-game",{road: road.noise.getValues(), sky: sky.noise.getValues()});
     });
 
-    socket.on("game-started", () =>{
-        console.log("game started");
+    socket.on("game-start", () =>{
+        console.log("game start: " + socket.id);
         socket.emit("create-player",socket.id);
+    });
+
+    socket.on("game-re-start", (playerData) =>{
+        console.log("game re-started: " + socket.id);
+
+        //tell to the other users already in the server create a enemy now
+        users.forEach(p => {
+            p.socket.emit("create-enemy",playerData);
+        });
+    
+        socket.emit("restart-game",playerData);
+
+         //now add it again to the players array
+        addPlayer(socket,playerData);
+
+        console.log("Number of players active: " + players.length);
+    });
+
+    socket.on("player-died", (id) =>{
+        console.log("player died: " + id);
+        removePlayer(socket);
+        socket.broadcast.emit("delete-enemy",id);
     });
 
     socket.on("player-created",(playerData) =>{
@@ -70,40 +92,32 @@ io.on("connection", (socket) => {
         users.forEach(p => {
             p.socket.emit("create-enemy",playerData);
         });
+
         //now add it to the players array
-       addPlayer(socket,playerData);
+        addPlayer(socket,playerData);
     });
 
 
     socket.on("update-player-speed", (playerData) =>{
-
-        
         let p = getPlayerFromSocket(socket);
-
         //sometimes the p is undefined I dont know why yet
         if(p) p.controlSpeed = playerData.control;
     });
 
     socket.on("update-player-rotation", (playerData) =>{
-
         let p = getPlayerFromSocket(socket);
-
         //sometimes the p is undefined I dont know why yet
         if(p) p.controlRotation = playerData.control;
     });
-
-    // socket.on("player-die", () =>{
-    //     console.log("Player died: " + socket.id);
-    //     players.splice(players.indexOf(getPlayerFromSocket(socket)),1);
-    //     // socket.broadcast.emit("enemy-die",socket.id);
-    //     console.log("Players playing: " + players.length);
-    // });
 
     socket.on("disconnect", () =>{
         console.log("User disconneted: " + socket.id);
         users.splice(users.indexOf(socket),1);
         players.splice(players.indexOf(getPlayerFromSocket(socket)),1);
         socket.broadcast.emit("delete-enemy",socket.id);
+
+        console.log("Users: conneted: " + users.length);
+        console.log("Players playing: " + players.length);
     });
 
     console.log("Users: conneted: " + users.length);
@@ -146,8 +160,18 @@ function addUser(socket){
     });
 }
 
+function removePlayer(socket){
+    let player = getPlayerFromSocket(socket);
+    if(!player) return;
+    //add to the players array now
+    players.splice(players.indexOf(player),1);
+    console.log("Player removed from active players: " + players.length);
+}
+
 function addPlayer(socket, playerData){
     let user = getUserFromSocket(socket);
+
+    if(!user) return;
 
     //update the data of that user becoming a player
     user.id = socket.id;
@@ -229,7 +253,10 @@ function onPlayerGrounded(player)
     if(angle > Math.PI / 2  || angle < -Math.PI/1.65)
     {
         //player should die here FINISHING state on client
-        console.log("Player died: " + player.id);
+        console.log("Player died: " + player.x);
+        player.diePosX = player.x;
+        io.emit("player-start-die",player.id);
+
     }
 }
 

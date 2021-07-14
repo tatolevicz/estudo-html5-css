@@ -11,6 +11,8 @@ class Player{
         this.speedY = 0;
         this.gravity = 0.2;
 
+        this.diePosX = 0;
+
         this.speed = 0;
         this.width = 0;
         

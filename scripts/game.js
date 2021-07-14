@@ -24,13 +24,13 @@ import { InputHandler } from "./input.js";
 
 
 // COMPUTE ENGINE - GCE
-// let socket = io("http://35.199.124.252:8080"); 
+let socket = io("http://35.199.124.252:8080"); 
 
 //APP Engine - GAE
 // let socket = io("https://tato-game-servers.rj.r.appspot.com/"); 
 
 // LOCAL HOST NODE
-let socket = io("http://localhost:8080");
+// let socket = io("http://localhost:8080");
 
 
 let lastTime = Date.now();
@@ -48,8 +48,7 @@ class Game{
         this.socket = socket;
         this.startBtn = document.querySelector("#startGameBtn");
         this.uiContainer = document.querySelector("#container-ui");
-        this.enemys = [];
-        this.states = new States();
+        this.players = [];
         // step 1
         this.canvas = document.querySelector("canvas");
         this.context = this.canvas.getContext("2d");
@@ -68,7 +67,22 @@ class Game{
 
         this.startBtn.addEventListener("click",() => {
             this.hideUI();
-            this.socket.emit("game-started");
+            if(this.player)
+                this.socket.emit("game-re-start",{
+                    id: this.player.id,
+                    rotation: 0,
+                    rotSpeed: 0,
+                    speedY: 0,
+                    speed: 0,
+                    x: 0,
+                    y: 0,
+                    playerOffsetX:this.canvas.width/4,
+                    grounded: false,
+                    lastGroundedState: false,
+                    width: this.player.width
+                });
+            else
+                this.socket.emit("game-start");
         });
 
         //SOCKETS 
@@ -87,21 +101,8 @@ class Game{
         });
 
         this.socket.on("delete-enemy",(id) => {
-
-            let idx = -1;
-            for (let index = 0; index <  this.enemys.length; index++) {
-                const enemy = this.enemys[index];
-                if(enemy.id == id) {
-                    idx = index;
-                    break;
-                }
-            }
-
-            if(idx != -1)
-                this.enemys.splice(idx,1);
+            this.removePlayer(id);
         });
-
-
 
         socket.on("fix-player-position",(playerData)=>{
 
@@ -124,7 +125,7 @@ class Game{
                 return;
             }
 
-            let enemy = this.getEnemyById(playerData.id);
+            let enemy = this.getPlayerById(playerData.id);
             if(enemy){
                 enemy.nextFrameInfo.rotation =  playerData.rotation;
                 enemy.nextFrameInfo.rotSpeed = playerData.rotSpeed;
@@ -137,14 +138,52 @@ class Game{
                 enemy.frameInterp = 0;
             }
         });
+
+        this.socket.on("player-start-die",(id) =>{
+            let player = this.getPlayerById(id);
+            player.state.setState(States.FINISHING);
+        })
+
+        this.socket.on("restart-game",(data) =>{
+
+            this.player.rotation = data.rotation;
+            this.player.rotSpeed = data.rotSpeed;
+            this.player.speedY = data.speedY;
+            this.player.speed = data.speed;
+            this.player.x = data.x;
+            this.player.y = data.y;
+            this.player.playerOffsetX = data.playerOffsetX;
+            this.player.grounded = data.grounded;
+            this.player.lastGroundedState = data.lastGroundedState;
+
+            this.players.push(this.player);
+
+            console.log("restart-game " + data.x);
+            this.road.currentX = data.x;
+            this.player.state.setState(States.STARTING);
+            });
     }
 
-    getEnemyById(id)
+    removePlayer(id){
+        let idx = -1;
+        for (let index = 0; index <  this.players.length; index++) {
+            const enemy = this.players[index];
+            if(enemy.id == id) {
+                idx = index;
+                break;
+            }
+        }
+
+        if(idx != -1)
+            this.players.splice(idx,1);
+    }
+
+    getPlayerById(id)
     {
-        for (let index = 0; index < this.enemys.length; index++) {
-            const element = this.enemys[index];
-            if(this.enemys[index].id == id)
-                return this.enemys[index];
+        for (let index = 0; index < this.players.length; index++) {
+            const player = this.players[index];
+            if(player.id == id)
+                return player;
         }
 
         return null;
@@ -162,8 +201,10 @@ class Game{
         this.player = new Player(0.7, true);
         this.player.playerOffsetX = this.canvas.width/4;
         this.player.id = id;
-        // this.player.onGrounded = this.onPlayerGrounded.bind(this);
         this.player.onPlayerReady = this.onPlayerReady.bind(this);
+
+        this.players.push(this.player);
+        console.log("Player added!");
     }
 
     addEnemy(data){
@@ -183,49 +224,47 @@ class Game{
         enemy.playerOffsetX = data.playerOffsetX;
         enemy.grounded = data.grounded;
         enemy.lastGroundedState = data.lastGroundedState;
+        enemy.onPlayerReady = this.onPlayerReady.bind(this);
 
-        enemy.onGrounded = this.onPlayerGrounded.bind(this);
-
-        
-        this.enemys.push(enemy);
-
-        
-        console.log("Enemy added!");
+        this.players.push(enemy);
+        console.log("Enemy added!: " + enemy.x);
     }
 
-    onPlayerGrounded(player)
-    {
-        let playerAngle = player.rotation;
-        let roadAngle = this.getRoadAngle(player);
+    // onPlayerGrounded(player)
+    // {
+    //     let playerAngle = player.rotation;
+    //     let roadAngle = this.getRoadAngle(player);
 
-        let angle = playerAngle + roadAngle;
-        console.log("Player client grounded: " + angle);
+    //     let angle = playerAngle + roadAngle;
+    //     console.log("Player client grounded: " + angle);
 
-        if(player === this.player){
-            if(angle > Math.PI / 2  || angle < -Math.PI/1.65)
-            {
-                this.states.setState(States.FINISHING);
-            }
-        }
-    }
+    //     if(player === this.player){
+    //         if(angle > Math.PI / 2  || angle < -Math.PI/1.65)
+    //         {
+    //             this.states.setState(States.FINISHING);
+    //         }
+    //     }
+    // }
     
     onPlayerReady(player)
     {
-        this.socket.emit("player-created",{
-            id: player.id,
-            rotation: player.rotation,
-            rotSpeed: player.rotSpeed,
-            speedY: player.speedY,
-            speed: player.speed,
-            x: player.x,
-            y: player.y,
-            playerOffsetX: player.playerOffsetX,
-            grounded: player.grounded,
-            lastGroundedState: player.lastGroundedState,
-            width: player.width
-        });
+        if(this.player && this.player.id == player.id){
+            this.socket.emit("player-created",{
+                id: player.id,
+                rotation: player.rotation,
+                rotSpeed: player.rotSpeed,
+                speedY: player.speedY,
+                speed: player.speed,
+                x: player.x,
+                y: player.y,
+                playerOffsetX: player.playerOffsetX,
+                grounded: player.grounded,
+                lastGroundedState: player.lastGroundedState,
+                width: player.width
+            });
+        }
 
-        this.states.setState(States.STARTING);
+        player.state.setState(States.STARTING);
     }
 
     loop(){
@@ -234,11 +273,12 @@ class Game{
         deltaTime = currentTime - lastTime;
         lastTime = currentTime;
 
-        if(this.isPlaying())
-            this.inputs();
+        this.inputs();
 
         //update game logic and objects
-        this.update(deltaTime);
+        this.players.forEach(player => {
+            this.update(player,deltaTime);
+        });
 
         //update canva's game
         this.draw();
@@ -258,65 +298,58 @@ class Game{
         if(this.road)
             this.road.draw();
 
-        this.enemys.forEach(enemy => {
-            enemy.draw();
+        this.players.forEach(player => {
+            player.draw();
         });
 
-        if(this.player)
-            this.player.draw();
+        // if(this.player)
+        //     this.player.draw();
 
     }
 
-    update(dt){
+    update(player,dt){
         //do the game logic
-        switch (this.states.getState()) {
+        switch (player.state.getState()) {
             case States.STARTING:
 
-                if(this.player.grounded) {
-                    this.states.setState(States.PLAYING)
+                if(player.grounded) {
+                    player.state.setState(States.PLAYING)
                     break;
                 }
         
-                this.updateToNextFrame(this.player,dt);
-                this.enemys.forEach(enemy => {
-                    this.updateToNextFrame(enemy,dt);
-                }); 
-
+                this.updateToNextFrame(player,dt);
                 break;
             case States.PLAYING: 
-                this.updateToNextFrame(this.player,dt);
-                this.enemys.forEach(enemy => {
-                    this.updateToNextFrame(enemy,dt);
-                });
-
+                this.updateToNextFrame(player,dt);
                 break;
             case States.FINISHING: 
 
-                this.player.playerOffsetX -= 5
-                this.player.rotation -= Math.PI * 0.2;
+                player.playerOffsetX -= 5
+                player.rotation -= Math.PI * 0.2;
 
-                this.player.speed -= this.player.speed*this.gameAcceleration*3;
+                player.speed -= player.speed*this.gameAcceleration*3;
 
-                this.updatePlayerPosition(this.player);
-
-                if(this.player.speed <= 0.05){
-                    this.states.setState(States.FINISHED);
+                if(player.speed <= 0.05){
+                    player.state.setState(States.FINISHED);
                 }
 
                 break;
             case States.FINISHED: 
-                    this.player.speed = 0;
-                    this.player.playerOffsetX = this.canvas.width/4;
-                    this.player.x = this.road.currentX;
-                    this.uiContainer.setAttribute("style","display: flex !important");
-                    this.player.rotation = 0;
-                    this.player.y = -this.player.height;
-                    this.states.setState(States.NONE);
+                    
+                    if(this.player && this.player.id == player.id)
+                    {
+                        this.showUI();
+                        this.removePlayer(player.id);
+                        this.player.state.setState(States.NONE);
+                        this.socket.emit("player-died",player.id);
+                        break;
+                    }
+
+                    player.state.setState(States.NONE);
+                    
                 break;
             case States.NONE: 
-                this.enemys.forEach(enemy => {
-                    this.updateToNextFrame(enemy,dt);
-                });
+                    this.updateToNextFrame(player,dt);
                 break
             default:
                 break;
@@ -328,6 +361,68 @@ class Game{
             this.sky.currentX = this.player.x;
         }
     }
+
+    // update(dt){
+    //     //do the game logic
+    //     switch (this.states.getState()) {
+    //         case States.STARTING:
+
+    //             if(this.player.grounded) {
+    //                 this.states.setState(States.PLAYING)
+    //                 break;
+    //             }
+        
+    //             this.updateToNextFrame(this.player,dt);
+    //             this.enemys.forEach(enemy => {
+    //                 this.updateToNextFrame(enemy,dt);
+    //             }); 
+
+    //             break;
+    //         case States.PLAYING: 
+    //             this.updateToNextFrame(this.player,dt);
+    //             this.enemys.forEach(enemy => {
+    //                 this.updateToNextFrame(enemy,dt);
+    //             });
+
+    //             break;
+    //         case States.FINISHING: 
+
+    //             this.player.playerOffsetX -= 5
+    //             this.player.rotation -= Math.PI * 0.2;
+
+    //             this.player.speed -= this.player.speed*this.gameAcceleration*3;
+
+    //             this.updatePlayerPosition(this.player);
+
+    //             if(this.player.speed <= 0.05){
+    //                 this.states.setState(States.FINISHED);
+    //             }
+
+    //             break;
+    //         case States.FINISHED: 
+    //                 this.player.speed = 0;
+    //                 this.player.playerOffsetX = this.canvas.width/4;
+    //                 this.player.x = this.road.currentX;
+    //                 this.uiContainer.setAttribute("style","display: flex !important");
+    //                 this.player.rotation = 0;
+    //                 this.player.y = -this.player.height;
+    //                 this.states.setState(States.NONE);
+    //             break;
+    //         case States.NONE: 
+    //             this.enemys.forEach(enemy => {
+    //                 this.updateToNextFrame(enemy,dt);
+    //             });
+    //             break
+    //         default:
+    //             break;
+    //     }
+
+    //     if(this.player && this.player.shouldStickWithCamera)
+    //     {
+    //         this.road.currentX = this.player.x;
+    //         this.sky.currentX = this.player.x;
+    //     }
+    // }
 
     lerp(a,b,f)
     {
@@ -357,8 +452,6 @@ class Game{
         player.speed =     this.lerp(player.speed,player.nextFrameInfo.speed,f);
         player.x =         this.lerp(player.x,player.nextFrameInfo.x,f);
         player.y =         this.lerp(player.y,player.nextFrameInfo.y,f);
-
-        player.setPositionY(player.y);
     }
 
 
@@ -432,7 +525,8 @@ class Game{
 
     isPlaying()
     {
-        return this.states.getState() === States.PLAYING;
+        if(this.player)
+        return this.player.state.getState() === States.PLAYING;
     }
 
     showUI(){
