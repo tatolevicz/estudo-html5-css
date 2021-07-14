@@ -50,7 +50,7 @@ let players = [];
 io.on("connection", (socket) => {
 
     console.log("User conneted: " + socket.id);
-    users.push(socket);
+    addUser(socket);
 
     //game request by client
     socket.on("request-game", () =>{
@@ -66,47 +66,12 @@ io.on("connection", (socket) => {
 
     socket.on("player-created",(playerData) =>{
         
-        //tell to the other player already in the game create a enemy now
-        players.forEach(p => {
+        //tell to the other users already in the game create a enemy now
+        users.forEach(p => {
             p.socket.emit("create-enemy",playerData);
         });
-        
-        //tell to this player create all the other enemys already here
-        players.forEach(p => {
-            //FIX with last player position if needed
-            socket.emit("create-enemy",{
-            id: p.id,
-            rotation: p.rotation,
-            rotSpeed: p.rotSpeed,
-            speedY: p.speedY,
-            speed: p.speed,
-            x: p.x,
-            y: p.y,
-            playerOffsetX: p.playerOffsetX,
-            grounded: p.grounded,
-            lastGroundedState: p.lastGroundedState,
-            width: p.width
-            });
-        });
-
         //now add it to the players array
-        let p = new Player(socket);
-
-        p.id =  playerData.id;
-        p.rotation = playerData.rotation;
-        p.rotSpeed = playerData.rotSpeed;
-        p.speedY = playerData.speedY;
-        p.speed = playerData.speed;
-        p.x = playerData.x;
-        p.y = playerData.y;
-        p.playerOffsetX = playerData.playerOffsetX;
-        p.grounded = playerData.grounded;
-        p.lastGroundedState = playerData.lastGroundedState;
-        p.width = playerData.width;
-
-        p.onGrounded = onPlayerGrounded;
-
-        players.push(p);
+       addPlayer(socket,playerData);
     });
 
 
@@ -145,12 +110,78 @@ io.on("connection", (socket) => {
     console.log("Players playing: " + players.length);
 });
 
+function addUser(socket){
+    let user = new Player(socket);
+
+    user.id = socket.id;
+    user.rotation = 0;
+    user.rotSpeed = 0;
+    user.speedY = 0;
+    user.speed = 0;
+    user.x = 0;
+    user.y = 0;
+    user.playerOffsetX = 0;
+    user.grounded = false;
+    user.lastGroundedState = false;
+    user.width = 0;
+
+    user.onGrounded = onPlayerGrounded;
+    users.push(user);
+
+    //tell to this player create all the other enemys already playing just to watch
+    players.forEach(p => {
+        socket.emit("create-enemy",{
+        id: p.id,
+        rotation: p.rotation,
+        rotSpeed: p.rotSpeed,
+        speedY: p.speedY,
+        speed: p.speed,
+        x: p.x,
+        y: p.y,
+        playerOffsetX: p.playerOffsetX,
+        grounded: p.grounded,
+        lastGroundedState: p.lastGroundedState,
+        width: p.width
+        });
+    });
+}
+
+function addPlayer(socket, playerData){
+    let user = getUserFromSocket(socket);
+
+    //update the data of that user becoming a player
+    user.id = socket.id;
+    user.rotation = playerData.rotation;
+    user.rotSpeed = playerData.rotSpeed;
+    user.speedY = playerData.speedY;
+    user.speed = playerData.speed;
+    user.x = playerData.x;
+    user.y = playerData.y;
+    user.playerOffsetX = playerData.playerOffsetX;
+    user.grounded = playerData.grounded;
+    user.lastGroundedState = playerData.lastGroundedState;
+    user.width = playerData.width;
+
+    //add to the players array now
+    players.push(user);
+}
+
 function getPlayerFromSocket(socket)
 {
     for (let index = 0; index < players.length; index++) {
         const player = players[index];
         if(player.socket === socket)
             return player;
+    }        
+}
+
+
+function getUserFromSocket(socket)
+{
+    for (let index = 0; index < users.length; index++) {
+        const user = users[index];
+        if(user.socket === socket)
+            return user;
     }        
 }
 
