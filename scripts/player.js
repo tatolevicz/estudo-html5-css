@@ -1,7 +1,21 @@
 import { States } from "./states.js";
 
+
+class FrameInfo{
+    constructor(){
+        this.rotation =  0;
+        this.rotSpeed = 0;
+        this.speedY = 0;
+        this.speed = 0;
+        this.x = 0;
+        this.y = 0;
+    }
+}
+
 class Player{
     constructor(scale, stickWithCamera){
+        this.nextFrameInfo = new FrameInfo();
+        this.frameInterp = 0;
 
         this.controlSpeed = 0;
         this.controlRotation = 0;
@@ -116,4 +130,4 @@ class Player{
     }
 }
 
-export {Player};
+export {Player, FrameInfo};

@@ -29,16 +29,7 @@ import { InputHandler } from "./input.js";
 //APP Engine - GAE
 // let socket = io("https://tato-game-servers.rj.r.appspot.com/"); 
 
-class FrameInfo{
-    constructor(){
-        this.rotation =  0;
-        this.rotSpeed = 0;
-        this.speedY = 0;
-        this.speed = 0;
-        this.x = 0;
-        this.y = 0;
-    }
-}
+
 
 
 // LOCAL HOST NODE
@@ -46,8 +37,6 @@ let socket = io("http://localhost:8080");
 
 class Game{
     constructor(socket) {
-        this.testNextFrame = new FrameInfo();
-        this.testInterpolationFrame = 0;
         this.socket = socket;
         this.startBtn = document.querySelector("#startGameBtn");
         this.uiContainer = document.querySelector("#container-ui");
@@ -141,28 +130,34 @@ class Game{
 
                 // this.player.lastGroundedState = playerData.lastGroundedState;
 
-                this.testNextFrame.rotation =  playerData.rotation;
-                this.testNextFrame.rotSpeed = playerData.rotSpeed;
-                this.testNextFrame.speedY = playerData.speedY;
-                this.testNextFrame.speed = playerData.speed;
-                this.testNextFrame.x = playerData.x;
-                this.testNextFrame.y = playerData.y;
-
-                this.testInterpolationFrame = 0;
+                this.player.nextFrameInfo.rotation =  playerData.rotation;
+                this.player.nextFrameInfo.rotSpeed = playerData.rotSpeed;
+                this.player.nextFrameInfo.speedY = playerData.speedY;
+                this.player.nextFrameInfo.speed = playerData.speed;
+                this.player.nextFrameInfo.x = playerData.x;
+                this.player.nextFrameInfo.y = playerData.y;
+                this.player.frameInterp = 0;
 
                 return;
             }
 
             let enemy = this.getEnemyById(playerData.id);
             if(enemy){
-                enemy.rotation =  playerData.rotation;
-                enemy.rotSpeed = playerData.rotSpeed;
-                enemy.speedY = playerData.speedY;
-                enemy.speed = playerData.speed;
-                enemy.x = playerData.x - this.player.x;
-                enemy.y = playerData.y;
-                enemy.grounded = playerData.grounded;
-                enemy.lastGroundedState = playerData.lastGroundedState;
+                // enemy.rotation =  playerData.rotation;
+                // enemy.rotSpeed = playerData.rotSpeed;
+                // enemy.speedY = playerData.speedY;
+                // enemy.speed = playerData.speed;
+                // enemy.x = playerData.x - this.player.x;
+                // enemy.y = playerData.y;
+                // enemy.grounded = playerData.grounded;
+                // enemy.lastGroundedState = playerData.lastGroundedState;
+                enemy.nextFrameInfo.rotation =  playerData.rotation;
+                enemy.nextFrameInfo.rotSpeed = playerData.rotSpeed;
+                enemy.nextFrameInfo.speedY = playerData.speedY;
+                enemy.nextFrameInfo.speed = playerData.speed;
+                enemy.nextFrameInfo.x = playerData.x - this.player.x;
+                enemy.nextFrameInfo.y = playerData.y;
+                enemy.frameInterp = 0;
             }
         });
     }
@@ -300,7 +295,10 @@ class Game{
                     break;
                 }
         
-                this.updateToNextFrame();
+                this.updateToNextFrame(this.player);
+                this.enemys.forEach(enemy => {
+                    this.updateToNextFrame(enemy);
+                }); 
                 // //update the position and rotation of player
                 // this.updatePlayerRotation(this.player);
                 // this.updatePlayerPosition(this.player);
@@ -311,7 +309,10 @@ class Game{
                 // });    
                 break;
             case States.PLAYING: 
-                this.updateToNextFrame();
+                this.updateToNextFrame(this.player);
+                this.enemys.forEach(enemy => {
+                    this.updateToNextFrame(enemy);
+                });
 
                 //update the position and rotation of player
                 // this.updatePlayerRotation(this.player);
@@ -368,24 +369,22 @@ class Game{
     }
 
 
-    updateToNextFrame(){
-        if(this.testNextFrame)
-        {
-            this.testInterpolationFrame += 10;
-            let f = this.testInterpolationFrame/100;
-            if(f > 1) f = 1;
+    updateToNextFrame(player){
 
-            this.player.rotation =  this.lerp(this.player.rotation,this.testNextFrame.rotation,f);
-            this.player.rotSpeed =  this.lerp(this.player.rotSpeed,this.testNextFrame.rotSpeed,f);
-            this.player.speedY =    this.lerp(this.player.speedY,this.testNextFrame.speedY,f);
-            this.player.speed =     this.lerp(this.player.speed,this.testNextFrame.speed,f);
-            this.player.x =         this.lerp(this.player.x,this.testNextFrame.x,f);
-            this.player.y =         this.lerp(this.player.y,this.testNextFrame.y,f);
+        player.frameInterp += 10;
+        let f = player.frameInterp/100;
+        if(f > 1) f = 1;
 
-            this.player.setPositionY(this.player.y);
-            
-        }
+        player.rotation =  this.lerp(player.rotation, player.nextFrameInfo.rotation,f);
+        player.rotSpeed =  this.lerp(player.rotSpeed,player.nextFrameInfo.rotSpeed,f);
+        player.speedY =    this.lerp(player.speedY,player.nextFrameInfo.speedY,f);
+        player.speed =     this.lerp(player.speed,player.nextFrameInfo.speed,f);
+        player.x =         this.lerp(player.x,player.nextFrameInfo.x,f);
+        player.y =         this.lerp(player.y,player.nextFrameInfo.y,f);
+
+        player.setPositionY(player.y);
     }
+
 
     updatePlayerPosition(player)
     {

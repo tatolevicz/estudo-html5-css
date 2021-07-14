@@ -241,7 +241,7 @@ const gameLoopId = loop.setGameLoop(function(dt) {
 }, deltaTimeGame);
 
 const socketLoopId = loop.setGameLoop(function(dt){
-   players.forEach(player => {
+    players.forEach(player => {
         io.emit("fix-player-position",{
             id: player.id,
             rotation: player.rotation,
