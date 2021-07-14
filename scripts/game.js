@@ -52,6 +52,7 @@ class Game{
         // step 1
         this.canvas = document.querySelector("canvas");
         this.context = this.canvas.getContext("2d");
+        
 
         //step 2
         this.canvas.width = window.innerWidth * 0.8 < 1000 ? window.innerWidth * 0.8 : 1000;
@@ -162,6 +163,18 @@ class Game{
             this.road.currentX = data.x;
             this.player.state.setState(States.STARTING);
             });
+
+            // TOUCH MOBILE 
+            this.canvas.addEventListener('touchstart', function(event) {
+                this.inputHandler.controls[this.inputHandler.controls.ArrowUp] = 1;
+            }, false);
+
+            this.canvas.addEventListener('touchend', function(event) {
+                // If it is the last finger pff the canvas
+                if (event.targetTouches.length == 1) {
+                    this.inputHandler.controls[this.inputHandler.controls.ArrowUp] = 1;
+                }
+            }, false);
     }
 
     removePlayer(id){
