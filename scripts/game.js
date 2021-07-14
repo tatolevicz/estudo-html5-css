@@ -118,6 +118,8 @@ class Game{
                 this.player.nextFrameInfo.speed = playerData.speed;
                 this.player.nextFrameInfo.x = playerData.x;
                 this.player.nextFrameInfo.y = playerData.y;
+                this.player.grounded = playerData.grounded;
+
                 this.player.frameInterp = 0;
 
                 return;
@@ -129,8 +131,10 @@ class Game{
                 enemy.nextFrameInfo.rotSpeed = playerData.rotSpeed;
                 enemy.nextFrameInfo.speedY = playerData.speedY;
                 enemy.nextFrameInfo.speed = playerData.speed;
-                enemy.nextFrameInfo.x = playerData.x - this.player.x;
+                enemy.nextFrameInfo.x = this.player ? playerData.x - this.player.x : playerData.x;
                 enemy.nextFrameInfo.y = playerData.y;
+                enemy.grounded = playerData.grounded;
+
                 enemy.frameInterp = 0;
             }
         });
@@ -159,12 +163,14 @@ class Game{
         this.player = new Player(0.7, true);
         this.player.playerOffsetX = this.canvas.width/4;
         this.player.id = id;
-        this.player.onGrounded = this.onPlayerGrounded.bind(this);
+        // this.player.onGrounded = this.onPlayerGrounded.bind(this);
         this.player.onPlayerReady = this.onPlayerReady.bind(this);
     }
 
     addEnemy(data){
-        if(this.player.id === data.id) return;
+
+        if(this.player)
+            if(this.player.id === data.id) return;
 
         let enemy = new Player(0.7, false);
 
@@ -277,14 +283,7 @@ class Game{
                 this.enemys.forEach(enemy => {
                     this.updateToNextFrame(enemy,dt);
                 }); 
-                // //update the position and rotation of player
-                // this.updatePlayerRotation(this.player);
-                // this.updatePlayerPosition(this.player);
 
-                // this.enemys.forEach(enemy => {
-                //     this.updatePlayerRotation(enemy);
-                //     this.updatePlayerPosition(enemy);
-                // });    
                 break;
             case States.PLAYING: 
                 this.updateToNextFrame(this.player,dt);
@@ -292,13 +291,6 @@ class Game{
                     this.updateToNextFrame(enemy,dt);
                 });
 
-                //update the position and rotation of player
-                // this.updatePlayerRotation(this.player);
-                // this.updatePlayerPosition(this.player);
-                // this.enemys.forEach(enemy => {
-                //     this.updatePlayerRotation(enemy);
-                //     this.updatePlayerPosition(enemy);
-                // });
                 break;
             case States.FINISHING: 
 
@@ -324,6 +316,9 @@ class Game{
                     this.states.setState(States.NONE);
                 break;
             case States.NONE: 
+                this.enemys.forEach(enemy => {
+                    this.updateToNextFrame(enemy,dt);
+                });
                 break
             default:
                 break;
