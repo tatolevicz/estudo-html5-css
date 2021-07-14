@@ -24,7 +24,7 @@ import { InputHandler } from "./input.js";
 
 
 // COMPUTE ENGINE - GCE
-// let socket = io("http://35.199.124.252:8080"); 
+let socket = io("http://35.199.124.252:8080"); 
 
 //APP Engine - GAE
 // let socket = io("https://tato-game-servers.rj.r.appspot.com/"); 
@@ -33,7 +33,7 @@ import { InputHandler } from "./input.js";
 
 
 // LOCAL HOST NODE
-let socket = io("http://localhost:8080");
+// let socket = io("http://localhost:8080");
 
 class Game{
     constructor(socket) {
@@ -356,11 +356,6 @@ class Game{
             this.road.currentX = this.player.x;
             this.sky.currentX = this.player.x;
         }
-
-        // if(this.player)
-        //     console.log(this.player.x);
-
-
     }
 
     lerp(a,b,f)
@@ -379,19 +374,11 @@ class Game{
 
 
         if(deltaAngle > Math.PI) 
-        {
             player.rotation = -Math.PI;
-            // player.nextFrameInfo.rotation = -Math.PI;
-        }
-        
-        if(deltaAngle < -Math.PI)
-        { 
+        else if(deltaAngle < -Math.PI) 
             player.rotation = Math.PI;
-            // player.nextFrameInfo.rotation = Math.PI;
-        }
 
         player.rotation =  this.lerp(player.rotation, player.nextFrameInfo.rotation,f);
-
 
         player.rotSpeed =  this.lerp(player.rotSpeed,player.nextFrameInfo.rotSpeed,f);
         player.speedY =    this.lerp(player.speedY,player.nextFrameInfo.speedY,f);
