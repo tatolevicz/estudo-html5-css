@@ -26,11 +26,17 @@ import { InputHandler } from "./input.js";
 // COMPUTE ENGINE - GCE
 let socket = io("http://35.199.124.252:8080"); 
 
+let lastTime = Date.now();
+let deltaTime = lastTime;
+
+let lastTimeSocket = Date.now();
+let deltaTimeSocket = lastTimeSocket;
+
+let lastInputSpeed = 0;
+let lastInputRotation = 0;
+
 //APP Engine - GAE
 // let socket = io("https://tato-game-servers.rj.r.appspot.com/"); 
-
-
-
 
 // LOCAL HOST NODE
 // let socket = io("http://localhost:8080");
@@ -93,42 +99,16 @@ class Game{
                 this.enemys.splice(idx,1);
         });
 
-        this.socket.on("update-player-speed",(playerData) => {
-            this.player.controlSpeed = playerData.control;
-        });
 
-        this.socket.on("update-player-rotation",(playerData) => {
-            this.player.controlRotation = playerData.control;
-        });
-
-        this.socket.on("update-enemy-speed",(playerData) => {
-            let enemy = this.getEnemyById(playerData.id);
-            if(enemy){
-                enemy.controlSpeed = playerData.control;
-            }
-        });
-
-        this.socket.on("update-enemy-rotation",(playerData) => {
-            let enemy = this.getEnemyById(playerData.id);
-            if(enemy){
-                enemy.controlRotation = playerData.control;
-            }
-        });
 
         socket.on("fix-player-position",(playerData)=>{
 
+            let currentTimeSocket = Date.now();
+            deltaTimeSocket = currentTimeSocket - lastTimeSocket;
+            lastTimeSocket = currentTimeSocket;
+
             //  id: player.id,
             if(this.player && this.player.id == playerData.id){
-
-                // this.player.rotation =  playerData.rotation;
-                // this.player.rotSpeed = playerData.rotSpeed;
-                // this.player.speedY = playerData.speedY;
-                // this.player.speed = playerData.speed;
-                // this.player.x = playerData.x;
-                // this.player.y = playerData.y;
-                // this.player.grounded = playerData.grounded;
-
-                // this.player.lastGroundedState = playerData.lastGroundedState;
 
                 this.player.nextFrameInfo.rotation =  playerData.rotation;
                 this.player.nextFrameInfo.rotSpeed = playerData.rotSpeed;
@@ -143,14 +123,6 @@ class Game{
 
             let enemy = this.getEnemyById(playerData.id);
             if(enemy){
-                // enemy.rotation =  playerData.rotation;
-                // enemy.rotSpeed = playerData.rotSpeed;
-                // enemy.speedY = playerData.speedY;
-                // enemy.speed = playerData.speed;
-                // enemy.x = playerData.x - this.player.x;
-                // enemy.y = playerData.y;
-                // enemy.grounded = playerData.grounded;
-                // enemy.lastGroundedState = playerData.lastGroundedState;
                 enemy.nextFrameInfo.rotation =  playerData.rotation;
                 enemy.nextFrameInfo.rotSpeed = playerData.rotSpeed;
                 enemy.nextFrameInfo.speedY = playerData.speedY;
@@ -250,11 +222,16 @@ class Game{
     }
 
     loop(){
+        let currentTime =  Date.now();
+        deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
+
         if(this.isPlaying())
             this.inputs();
 
         //update game logic and objects
-        this.update();
+        this.update(deltaTime);
 
         //update canva's game
         this.draw();
@@ -284,8 +261,7 @@ class Game{
 
     }
 
-    update(){
-
+    update(dt){
         //do the game logic
         switch (this.states.getState()) {
             case States.STARTING:
@@ -295,9 +271,9 @@ class Game{
                     break;
                 }
         
-                this.updateToNextFrame(this.player);
+                this.updateToNextFrame(this.player,dt);
                 this.enemys.forEach(enemy => {
-                    this.updateToNextFrame(enemy);
+                    this.updateToNextFrame(enemy,dt);
                 }); 
                 // //update the position and rotation of player
                 // this.updatePlayerRotation(this.player);
@@ -309,9 +285,9 @@ class Game{
                 // });    
                 break;
             case States.PLAYING: 
-                this.updateToNextFrame(this.player);
+                this.updateToNextFrame(this.player,dt);
                 this.enemys.forEach(enemy => {
-                    this.updateToNextFrame(enemy);
+                    this.updateToNextFrame(enemy,dt);
                 });
 
                 //update the position and rotation of player
@@ -364,15 +340,16 @@ class Game{
     }
 
 
-    updateToNextFrame(player){
 
-        player.frameInterp += 10;
-        let f = player.frameInterp/40;
-        if(f > 1) f = 1;
+    updateToNextFrame(player,dt){
+
+        player.frameInterp += dt;
+        let f = player.frameInterp/deltaTimeSocket;
+        if(f > 1) {
+            f = 1; 
+        }
 
         let deltaAngle  = player.rotation - player.nextFrameInfo.rotation;
-
-
         if(deltaAngle > Math.PI) 
             player.rotation = -Math.PI;
         else if(deltaAngle < -Math.PI) 
@@ -435,29 +412,27 @@ class Game{
 
     inputs(){
         let inputSpeed = (this.inputHandler.controls.ArrowUp - this.inputHandler.controls.ArrowDown);
-        if(inputSpeed != this.player.controlSpeed)
+
+        if(lastInputSpeed != inputSpeed)
         {
             this.socket.emit("update-player-speed",{
                 id: this.player.id,
-                control: inputSpeed,
-                worldPosX: this.player.x + this.player.playerOffsetX,
-                posY: this.player.y,
-                rotation: this.player.rotation
+                control: inputSpeed
             });
         }
 
-        let rotDirection = (this.inputHandler.controls.ArrowLeft - this.inputHandler.controls.ArrowRight);
+        let rotInput= (this.inputHandler.controls.ArrowLeft - this.inputHandler.controls.ArrowRight);
 
-        if(rotDirection != this.player.controlRotation)
+        if(rotInput != lastInputRotation)
         {
             this.socket.emit("update-player-rotation",{
                 id: this.player.id,
-                control: rotDirection,
-                worldPosX: this.player.x + this.player.playerOffsetX,
-                posY: this.player.y,
-                rotation: this.player.rotation
+                control: rotInput
             });
         }
+
+        lastInputSpeed = inputSpeed;
+        lastInputRotation = rotInput;
     }
 
     isPlaying()

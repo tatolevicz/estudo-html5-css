@@ -15,8 +15,8 @@ class GameColors{
     static hillsColor = "#000";
 }
 
-const gameAcceleration = 0.03;
-const groundFriction = 0.01;
+const gameAcceleration = 0.06;
+const groundFriction = 0.02;
 
 const io = new Server(server, {
     cors: {
@@ -113,33 +113,17 @@ io.on("connection", (socket) => {
     socket.on("update-player-speed", (playerData) =>{
 
         let p = getPlayerFromSocket(socket);
-        p.controlSpeed = playerData.control;
 
-        // console.log(playerData);
-        socket.emit("update-player-speed",{
-            control: playerData.control,
-        });
-
-        socket.broadcast.emit("update-enemy-speed",{
-            id: socket.id,
-            control: playerData.control
-        });
+        if(p)
+            p.controlSpeed = playerData.control;
     });
 
     socket.on("update-player-rotation", (playerData) =>{
 
         let p = getPlayerFromSocket(socket);
-        p.controlRotation = playerData.control;
 
-        // console.log(playerData);
-        socket.emit("update-player-rotation",{
-            control: playerData.control
-        });
-
-        socket.broadcast.emit("update-enemy-rotation",{
-            id: socket.id,
-            control: playerData.control
-        });
+        if(p)
+            p.controlRotation = playerData.control;
     });
 
     // socket.on("player-die", () =>{
@@ -228,8 +212,8 @@ function getRoadAngle(player)
 // GAMELOOP ON SERVER
 // start the loop at 30 fps (1000/30ms per frame) and grab its id
 // let frameCount = 0;
-let deltaTimeGame = 1000/75; // 16.666ms
-let deltaTimeSocket = 1000/25; //500 ms
+let deltaTimeGame = 1000/100; // 16.666ms
+let deltaTimeSocket = 1000/30; //500 ms
 
 const gameLoopId = loop.setGameLoop(function(dt) {
     // console.log('Hi there! (frame=%s, delta=%s)', frameCount++, dt);
@@ -243,7 +227,7 @@ const gameLoopId = loop.setGameLoop(function(dt) {
 const socketLoopId = loop.setGameLoop(function(dt){
     players.forEach(player => {
         io.emit("fix-player-position",{
-            id: player.id,
+            id: player.id,            
             rotation: player.rotation,
             rotSpeed: player.rotSpeed,
             speedY: player.speedY,
