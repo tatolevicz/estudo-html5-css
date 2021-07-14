@@ -228,8 +228,8 @@ function getRoadAngle(player)
 // GAMELOOP ON SERVER
 // start the loop at 30 fps (1000/30ms per frame) and grab its id
 // let frameCount = 0;
-let deltaTimeGame = 1000/100; // 16.666ms
-let deltaTimeSocket = 1000/10; //500 ms
+let deltaTimeGame = 1000/75; // 16.666ms
+let deltaTimeSocket = 1000/25; //500 ms
 
 const gameLoopId = loop.setGameLoop(function(dt) {
     // console.log('Hi there! (frame=%s, delta=%s)', frameCount++, dt);

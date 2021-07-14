@@ -372,10 +372,27 @@ class Game{
     updateToNextFrame(player){
 
         player.frameInterp += 10;
-        let f = player.frameInterp/100;
+        let f = player.frameInterp/40;
         if(f > 1) f = 1;
 
+        let deltaAngle  = player.rotation - player.nextFrameInfo.rotation;
+
+
+        if(deltaAngle > Math.PI) 
+        {
+            player.rotation = -Math.PI;
+            // player.nextFrameInfo.rotation = -Math.PI;
+        }
+        
+        if(deltaAngle < -Math.PI)
+        { 
+            player.rotation = Math.PI;
+            // player.nextFrameInfo.rotation = Math.PI;
+        }
+
         player.rotation =  this.lerp(player.rotation, player.nextFrameInfo.rotation,f);
+
+
         player.rotSpeed =  this.lerp(player.rotSpeed,player.nextFrameInfo.rotSpeed,f);
         player.speedY =    this.lerp(player.speedY,player.nextFrameInfo.speedY,f);
         player.speed =     this.lerp(player.speed,player.nextFrameInfo.speed,f);
