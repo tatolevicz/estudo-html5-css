@@ -22,247 +22,236 @@ import { GameColors } from "./colors.js";
 import { States } from "./states.js";
 import { InputHandler } from "./input.js";
 
+class Game {
+  constructor() {
+    this.startBtn = document.querySelector("#startGameBtn");
+    this.uiContainer = document.querySelector("#container-ui");
 
-class Game{
-    constructor() {
+    this.states = new States();
+    // step 1
+    this.canvas = document.querySelector("canvas");
+    this.context = this.canvas.getContext("2d");
 
-        this.startBtn = document.querySelector("#startGameBtn");
-        this.uiContainer = document.querySelector("#container-ui");
+    //step 2
+    this.canvas.width =
+      window.innerWidth * 0.8 < 1000 ? window.innerWidth * 0.8 : 1000;
+    this.canvas.height = 500;
+    this.gameSpeed = 0;
+    this.gameAcceleration = 0.01;
 
-        this.states = new States();
-        // step 1
-        this.canvas = document.querySelector("canvas");
-        this.context = this.canvas.getContext("2d");
+    this.inputHandler = new InputHandler();
 
-        //step 2
-        this.canvas.width = window.innerWidth * 0.8 < 1000 ? window.innerWidth * 0.8 : 1000;
-        this.canvas.height = 500;
+    this.playerOffsetX = this.canvas.width / 4;
+
+    // step 3 and 4
+    this.road = new Road(
+      this.canvas,
+      0,
+      this.canvas.width * 1.1,
+      this.canvas.height,
+      this.canvas.height,
+      500,
+      180,
+      160,
+      GameColors.hillsColor,
+      true,
+      false,
+      3.0
+    );
+
+    // step 3 and 4
+    this.sky = new Road(
+      this.canvas,
+      0,
+      this.canvas.width * 1.1,
+      0,
+      0,
+      200,
+      30,
+      300,
+      GameColors.skyColor,
+      true,
+      true,
+      0.8
+    );
+
+    let img = new Image();
+    img.src = "./assets/images/player.png";
+
+    this.player = new Player(img, 0.7);
+
+    this.player.onGrounded = this.onPlayerGrounded.bind(this);
+
+    window.onkeydown = (ev) => (this.inputHandler.controls[ev.key] = 1);
+    window.onkeyup = (ev) => (this.inputHandler.controls[ev.key] = 0);
+
+    this.startBtn.addEventListener("click", () => {
+      this.uiContainer.setAttribute("style", "display: none !important");
+      this.states.setState(States.STARTING);
+    });
+  }
+
+  onPlayerGrounded() {
+    let playerAngle = this.player.rotation;
+    let roadAngle = this.getRoadAngle();
+
+    let angle = playerAngle + roadAngle;
+
+    if (angle > Math.PI / 2 || angle < -Math.PI / 1.65) {
+      this.states.setState(States.FINISHING);
+    }
+  }
+
+  loop() {
+    if (this.isPlaying()) this.inputs();
+
+    //update game logic and objects
+    this.update();
+
+    //update canva's game
+    this.draw();
+  }
+
+  draw() {
+    //draw the background first
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.context.fillStyle = GameColors.backgroundColor;
+    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    //draw the sky to be the most far element in front the background
+    this.sky.draw();
+
+    //draw the road and player with any sequence cause they will not overlap each other
+    this.road.draw();
+    this.player.draw();
+  }
+
+  update() {
+    //do the game logic
+    switch (this.states.getState()) {
+      case States.STARTING:
+        if (this.player.grounded) {
+          this.states.setState(States.PLAYING);
+          break;
+        }
+
+        //update the position and rotation of player
+        this.updatePlayerPosition();
+        this.updatePlayerRotation();
+        break;
+      case States.PLAYING:
+        this.sky.setSpeed(this.gameSpeed);
+        this.road.setSpeed(this.gameSpeed);
+        this.player.setSpeed(this.gameSpeed);
+        //update the position and rotation of player
+        this.updatePlayerPosition();
+        this.updatePlayerRotation();
+        break;
+      case States.FINISHING:
+        this.playerOffsetX -= 5;
+        this.player.rotation -= Math.PI * 0.2;
+
+        this.gameSpeed -= this.gameSpeed * this.gameAcceleration * 3;
+
+        this.sky.setSpeed(this.gameSpeed);
+        this.road.setSpeed(this.gameSpeed);
+        this.player.setSpeed(this.gameSpeed);
+
+        this.updatePlayerPosition();
+
+        if (this.gameSpeed <= 0.05) {
+          this.states.setState(States.FINISHED);
+        }
+
+        break;
+      case States.FINISHED:
         this.gameSpeed = 0;
-        this.gameAcceleration = 0.01;
+        this.playerOffsetX = this.canvas.width / 4;
+        this.uiContainer.setAttribute("style", "display: flex !important");
+        this.player.rotation = 0;
+        this.player.setPosition(this.playerOffsetX, -this.player.height);
+        this.states.setState(States.NONE);
+        break;
+      case States.NONE:
+        this.gameSpeed -= this.gameSpeed * this.gameAcceleration * 3;
+        break;
+      default:
+        break;
+    }
+  }
 
-        this.inputHandler = new InputHandler();
+  checkGameOver() {}
 
-        this.playerOffsetX = this.canvas.width/4;
+  updatePlayerPosition() {
+    let playerX = this.playerOffsetX;
+    let playerY = this.road.getRoadY(this.road.getRoadPosition(playerX));
+    this.player.setPosition(playerX, playerY);
+  }
 
-        // step 3 and 4
-        this.road = new Road(
-            this.canvas, 
-            0, 
-            this.canvas.width*1.1, 
-            this.canvas.height, 
-            this.canvas.height, 
-            500,
-            180, 
-            160, 
-            GameColors.hillsColor,
-            true,
-            false,
-            3.0);  
-            
-             // step 3 and 4
-        this.sky = new Road(
-            this.canvas, 
-            0, 
-            this.canvas.width*1.1, 
-            0, 
-            0, 
-            200,
-            30, 
-            300, 
-            GameColors.skyColor,
-            true,
-            true,
-            0.8);
+  updatePlayerRotation() {
+    let roadAngle = this.getRoadAngle();
+    if (this.player.grounded) {
+      this.player.rotSpeed = 0.3;
+      this.player.rotate(this.player.rotation + roadAngle);
+    }
+  }
 
-            let img = new Image();
-            img.src = './assets/images/player.png';
+  getRoadAngle() {
+    return this.road.getRoadAngle(
+      this.road.getRoadPosition(this.playerOffsetX) - this.player.width / 3,
+      this.road.getRoadPosition(this.playerOffsetX) + this.player.width / 3
+    );
+  }
 
-            this.player = new Player(img,0.7);
+  inputs() {
+    let inputSpeed =
+      this.inputHandler.controls.ArrowUp - this.inputHandler.controls.ArrowDown;
 
-            this.player.onGrounded = this.onPlayerGrounded.bind(this);
+    let gravityAcelleration = (this.player.rotation / Math.PI / 4) * 0.5;
 
-            window.onkeydown = ev => this.inputHandler.controls[ev.key] = 1;
-            window.onkeyup = ev => this.inputHandler.controls[ev.key] = 0;
-
-
-            this.startBtn.addEventListener("click",() => {
-                this.uiContainer.setAttribute("style","display: none !important");
-                this.states.setState(States.STARTING);
-            });
+    if (inputSpeed && this.player.grounded) {
+      this.gameSpeed +=
+        (this.inputHandler.controls.ArrowUp -
+          this.inputHandler.controls.ArrowDown) *
+        (this.gameAcceleration + gravityAcelleration);
+      if (this.gameSpeed < 0) this.gameSpeed = 0;
+    } else if (this.player.grounded) {
+      this.gameSpeed -=
+        this.gameSpeed * this.gameAcceleration - gravityAcelleration * 0.5;
     }
 
-    onPlayerGrounded()
-    {
-        let playerAngle = this.player.rotation;
-        let roadAngle = this.getRoadAngle();
+    let rotDirection =
+      this.inputHandler.controls.ArrowLeft -
+      this.inputHandler.controls.ArrowRight;
 
-        let angle = playerAngle + roadAngle;
+    this.player.rotSpeed = 0.1;
+    this.player.rotate(rotDirection);
+  }
 
-        if(angle > Math.PI / 2  || angle < -Math.PI/1.65)
-        {
-            this.states.setState(States.FINISHING);
-        }
-    }
-
-    loop(){
-
-        if(this.isPlaying())
-            this.inputs();
-
-        //update game logic and objects
-        this.update();
-
-        //update canva's game
-        this.draw();
-    }
-
-    draw(){
-        //draw the background first
-        this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
-        this.context.fillStyle = GameColors.backgroundColor;
-        this.context.fillRect(0,0,this.canvas.width, this.canvas.height);
-
-        //draw the sky to be the most far element in front the background
-        this.sky.draw();
-
-        //draw the road and player with any sequence cause they will not overlap each other
-        this.road.draw();
-        this.player.draw();
-    }
-
-    update(){
-
-        //do the game logic
-        switch (this.states.getState()) {
-            case States.STARTING:
-
-                if(this.player.grounded) {
-                    this.states.setState(States.PLAYING)
-                    break;
-                }
-        
-                //update the position and rotation of player
-                this.updatePlayerPosition();
-                this.updatePlayerRotation();
-                break;
-            case States.PLAYING: 
-                this.sky.setSpeed(this.gameSpeed);
-                this.road.setSpeed(this.gameSpeed);
-                this.player.setSpeed(this.gameSpeed);
-                //update the position and rotation of player
-                this.updatePlayerPosition();
-                this.updatePlayerRotation();
-                break;
-            case States.FINISHING: 
-                this.playerOffsetX -= 5
-                this.player.rotation -= Math.PI * 0.2;
-
-                this.gameSpeed -= this.gameSpeed*this.gameAcceleration*3;
-
-                this.sky.setSpeed(this.gameSpeed);
-                this.road.setSpeed(this.gameSpeed);
-                this.player.setSpeed(this.gameSpeed);
-
-                this.updatePlayerPosition();
-
-                if(this.gameSpeed <= 0.05){
-                    this.states.setState(States.FINISHED);
-                }
-
-                break;
-            case States.FINISHED: 
-                    this.gameSpeed = 0;
-                    this.playerOffsetX = this.canvas.width/4;
-                    this.uiContainer.setAttribute("style","display: flex !important");
-                    this.player.rotation = 0;
-                    this.player.setPosition(this.playerOffsetX, -this.player.height);
-                    this.states.setState(States.NONE);
-                break;
-            case States.NONE: 
-                this.gameSpeed -= this.gameSpeed*this.gameAcceleration*3;
-                break
-            default:
-                break;
-        }
-    }
-
-    checkGameOver()
-    {
-
-    }
-    
-
-    updatePlayerPosition()
-    {
-        let playerX = this.playerOffsetX;
-        let playerY = this.road.getRoadY(this.road.getRoadPosition(playerX));
-        this.player.setPosition(playerX,playerY);
-    }
-
-
-    updatePlayerRotation()
-    {
-    
-        let roadAngle = this.getRoadAngle();
-        if(this.player.grounded){
-            this.player.rotSpeed = 0.3;
-            this.player.rotate(this.player.rotation + roadAngle);
-        }
-    }
-
-    getRoadAngle()
-    {
-        return this.road.getRoadAngle(
-            this.road.getRoadPosition(this.playerOffsetX) - this.player.width/3,
-            this.road.getRoadPosition(this.playerOffsetX) + this.player.width/3
-            );
-    }
-
-    inputs(){
-
-        let inputSpeed = (this.inputHandler.controls.ArrowUp - this.inputHandler.controls.ArrowDown);
-
-        let gravityAcelleration = (this.player.rotation/Math.PI/4) * 0.5;
-
-        if(inputSpeed && this.player.grounded)
-        {
-            this.gameSpeed += (this.inputHandler.controls.ArrowUp - this.inputHandler.controls.ArrowDown)*(this.gameAcceleration + gravityAcelleration);
-            if(this.gameSpeed < 0)
-                this.gameSpeed = 0;
-        }
-        else if(this.player.grounded)
-        {
-            this.gameSpeed -=  this.gameSpeed*this.gameAcceleration - gravityAcelleration*0.5;
-        }
-
-        let rotDirection = (this.inputHandler.controls.ArrowLeft - this.inputHandler.controls.ArrowRight);
-        
-        this.player.rotSpeed = 0.1;
-        this.player.rotate(rotDirection);
-
-    }
-
-    isPlaying()
-    {
-        return this.states.getState() === States.PLAYING;
-    }
+  isPlaying() {
+    return this.states.getState() === States.PLAYING;
+  }
 }
-
-
 
 var game = new Game();
 
-function mainLoop(){
-    game.loop();
-    requestAnimationFrame(mainLoop);
+function mainLoop() {
+  game.loop();
+  requestAnimationFrame(mainLoop);
 }
 
 mainLoop();
 
-window.addEventListener("keydown", function(e) {
-    if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
-        e.preventDefault();
+window.addEventListener(
+  "keydown",
+  function (e) {
+    if (
+      ["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].indexOf(
+        e.code
+      ) > -1
+    ) {
+      e.preventDefault();
     }
-}, false);
-
-
+  },
+  false
+);
