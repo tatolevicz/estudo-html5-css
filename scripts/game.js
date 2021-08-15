@@ -39,10 +39,16 @@ let deltaTime = lastTime;
 let lastTimeSocket = Date.now();
 let deltaTimeSocket = lastTimeSocket;
 
+let lastInputSpeed = 0;
+let lastInputRotation = 0;
+
+
+class Game{
+    constructor(socket) {
+        this.socket = socket;
         this.startBtn = document.querySelector("#startGameBtn");
         this.uiContainer = document.querySelector("#container-ui");
-
-        this.states = new States();
+        this.players = [];
         // step 1
         this.canvas = document.querySelector("canvas");
         this.context = this.canvas.getContext("2d");
@@ -56,56 +62,136 @@ let deltaTimeSocket = lastTimeSocket;
 
         this.inputHandler = new InputHandler();
 
-        this.playerOffsetX = this.canvas.width/4;
-
-        // step 3 and 4
-        this.road = new Road(
-            this.canvas, 
-            0, 
-            this.canvas.width*1.1, 
-            this.canvas.height, 
-            this.canvas.height, 
-            500,
-            180, 
-            160, 
-            GameColors.hillsColor,
-            true,
-            false,
-            3.0);  
-            
-             // step 3 and 4
-        this.sky = new Road(
-            this.canvas, 
-            0, 
-            this.canvas.width*1.1, 
-            0, 
-            0, 
-            200,
-            30, 
-            300, 
-            GameColors.skyColor,
-            true,
-            true,
-            0.8);
-
-            let img = new Image();
-            img.src = './assets/images/player.png';
-
-            this.player = new Player(img,0.7);
-
-            this.player.onGrounded = this.onPlayerGrounded.bind(this);
-
-            window.onkeydown = ev => this.inputHandler.controls[ev.key] = 1;
-            window.onkeyup = ev => this.inputHandler.controls[ev.key] = 0;
+        window.onkeydown = ev => this.inputHandler.controls[ev.key] = 1;
+        window.onkeyup = ev => this.inputHandler.controls[ev.key] = 0;
 
 
-            this.startBtn.addEventListener("click",() => {
-                this.uiContainer.setAttribute("style","display: none !important");
-                this.states.setState(States.STARTING);
+        this.startBtn.addEventListener("click",() => {
+            this.hideUI();
+            if(this.player)
+                this.socket.emit("game-re-start",{
+                    id: this.player.id,
+                    rotation: 0,
+                    rotSpeed: 0,
+                    speedY: 0,
+                    speed: 0,
+                    x: 0,
+                    y: 0,
+                    playerOffsetX:this.canvas.width/4,
+                    grounded: false,
+                    lastGroundedState: false,
+                    width: this.player.width
+                });
+            else
+                this.socket.emit("game-start");
+        });
+
+        //SOCKETS 
+        this.socket.on("prepare-game",(data) =>{
+            this.onPrepareGame(data);
+        });
+
+        this.socket.emit("request-game");
+
+        this.socket.on("create-player",(id) =>{
+            this.addPlayer(id);
+        });
+
+        this.socket.on("create-enemy",(data) =>{
+            this.addEnemy(data);
+        });
+
+        this.socket.on("delete-enemy",(id) => {
+            this.removePlayer(id);
+        });
+
+        socket.on("fix-player-position",(playerData)=>{
+
+            let currentTimeSocket = Date.now();
+            deltaTimeSocket = currentTimeSocket - lastTimeSocket;
+            lastTimeSocket = currentTimeSocket;
+
+            if(this.player && this.player.id == playerData.id){
+
+                this.player.nextFrameInfo.rotation =  playerData.rotation;
+                this.player.nextFrameInfo.rotSpeed = playerData.rotSpeed;
+                this.player.nextFrameInfo.speedY = playerData.speedY;
+                this.player.nextFrameInfo.speed = playerData.speed;
+                this.player.nextFrameInfo.x = playerData.x;
+                this.player.nextFrameInfo.y = playerData.y;
+                this.player.grounded = playerData.grounded;
+
+                this.player.frameInterp = 0;
+
+                return;
+            }
+
+            let enemy = this.getPlayerById(playerData.id);
+            if(enemy){
+                enemy.nextFrameInfo.rotation =  playerData.rotation;
+                enemy.nextFrameInfo.rotSpeed = playerData.rotSpeed;
+                enemy.nextFrameInfo.speedY = playerData.speedY;
+                enemy.nextFrameInfo.speed = playerData.speed;
+                enemy.nextFrameInfo.x = this.player ? playerData.x - this.player.x : playerData.x;
+                enemy.nextFrameInfo.y = playerData.y;
+                enemy.grounded = playerData.grounded;
+
+                enemy.frameInterp = 0;
+            }
+        });
+
+        this.socket.on("player-start-die",(id) =>{
+            let player = this.getPlayerById(id);
+            player.state.setState(States.FINISHING);
+        })
+
+        this.socket.on("restart-game",(data) =>{
+
+            this.player.rotation = data.rotation;
+            this.player.rotSpeed = data.rotSpeed;
+            this.player.speedY = data.speedY;
+            this.player.speed = data.speed;
+            this.player.x = data.x;
+            this.player.y = data.y;
+            this.player.playerOffsetX = data.playerOffsetX;
+            this.player.grounded = data.grounded;
+            this.player.lastGroundedState = data.lastGroundedState;
+
+            this.players.push(this.player);
+
+            console.log("restart-game " + data.x);
+            this.road.currentX = data.x;
+            this.player.state.setState(States.STARTING);
             });
+
+            // TOUCH MOBILE 
+            this.canvas.addEventListener('touchstart', function(event) {
+                this.inputHandler.controls[this.inputHandler.controls.ArrowUp] = 1;
+            }, false);
+
+            this.canvas.addEventListener('touchend', function(event) {
+                // If it is the last finger pff the canvas
+                if (event.targetTouches.length == 1) {
+                    this.inputHandler.controls[this.inputHandler.controls.ArrowUp] = 1;
+                }
+            }, false);
     }
 
-    onPlayerGrounded()
+    removePlayer(id){
+        let idx = -1;
+        for (let index = 0; index <  this.players.length; index++) {
+            const enemy = this.players[index];
+            if(enemy.id == id) {
+                idx = index;
+                break;
+            }
+        }
+
+        if(idx != -1)
+            this.players.splice(idx,1);
+    }
+
+    getPlayerById(id)
     {
         for (let index = 0; index < this.players.length; index++) {
             const player = this.players[index];
@@ -219,14 +305,12 @@ let deltaTimeSocket = lastTimeSocket;
         switch (player.state.getState()) {
             case States.STARTING:
 
-                if(this.player.grounded) {
-                    this.states.setState(States.PLAYING)
+                if(player.grounded) {
+                    player.state.setState(States.PLAYING)
                     break;
                 }
         
-                //update the position and rotation of player
-                this.updatePlayerPosition();
-                this.updatePlayerRotation();
+                this.updateToNextFrame(player,dt);
                 break;
             case States.PLAYING: 
                 this.updateToNextFrame(player,dt);
@@ -242,23 +326,23 @@ let deltaTimeSocket = lastTimeSocket;
                     player.state.setState(States.FINISHED);
                 }
 
-                this.updatePlayerPosition();
-
-                if(this.gameSpeed <= 0.05){
-                    this.states.setState(States.FINISHED);
-                }
-
                 break;
             case States.FINISHED: 
-                    this.gameSpeed = 0;
-                    this.playerOffsetX = this.canvas.width/4;
-                    this.uiContainer.setAttribute("style","display: flex !important");
-                    this.player.rotation = 0;
-                    this.player.setPosition(this.playerOffsetX, -this.player.height);
-                    this.states.setState(States.NONE);
+                    
+                    if(this.player && this.player.id == player.id)
+                    {
+                        this.showUI();
+                        this.removePlayer(player.id);
+                        this.player.state.setState(States.NONE);
+                        this.socket.emit("player-died",player.id);
+                        break;
+                    }
+
+                    player.state.setState(States.NONE);
+                    
                 break;
             case States.NONE: 
-                this.gameSpeed -= this.gameSpeed*this.gameAcceleration*3;
+                    this.updateToNextFrame(player,dt);
                 break
             default:
                 break;
